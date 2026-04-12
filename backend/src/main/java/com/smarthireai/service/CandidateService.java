@@ -2,32 +2,33 @@ package com.smarthireai.service;
 
 import com.smarthireai.dto.CreateCandidateRequest;
 import com.smarthireai.entity.Candidate;
+import com.smarthireai.repository.CandidateRepository;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CandidateService {
 
-    private final List<Candidate> candidates = new ArrayList<>();
-    private final AtomicLong idCounter = new AtomicLong(1);
+    private final CandidateRepository candidateRepository;
+
+    public CandidateService(CandidateRepository candidateRepository) {
+        this.candidateRepository = candidateRepository;
+    }
 
     public List<Candidate> getAllCandidates() {
-        return candidates;
+        return candidateRepository.findAll();
     }
 
     public Candidate createCandidate(CreateCandidateRequest request) {
         Candidate candidate = new Candidate(
-                idCounter.getAndIncrement(),
                 request.fullName(),
                 request.email(),
-                request.skills(),
+                new ArrayList<>(request.skills() == null ? List.of() : request.skills()),
                 request.experienceYears(),
                 request.educationLevel()
         );
 
-        candidates.add(candidate);
-        return candidate;
+        return candidateRepository.save(candidate);
     }
 }
