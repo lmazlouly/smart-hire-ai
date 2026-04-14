@@ -1,0 +1,23 @@
+<div class="recruiter-container">
+  <div class="recruiter-header">
+    <h1>👔 Espace Recruteur</h1>
+    <p>Recruiter Dashboard - Manage and Review Top Candidates</p>
+  </div>
+
+  <div class="candidates-grid">
+    <div *ngFor="let c of candidates" class="candidate-card">
+      <div class="candidate-header">
+        <h3>{{ c.name }}</h3>
+        <span class="score-badge">{{ c.score }}%</span>
+      </div>
+      <div class="candidate-body">
+        <p class="score-text">Match Score: <strong>{{ c.score }}%</strong></p>
+        <button class="btn-view">View Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="candidates.length === 0" class="empty-state">
+    <p>No candidates available</p>
+  </div>
+</div>
