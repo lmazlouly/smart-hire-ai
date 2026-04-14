@@ -1,0 +1,171 @@
+<div class="min-h-screen bg-white pb-20 lg:pb-0">
+  <header class="sticky top-0 z-40 border-b border-line bg-white/90 backdrop-blur-xl">
+    <div class="mx-auto flex w-full max-w-[1240px] items-center justify-between px-4 py-3 sm:px-6 lg:px-10">
+      <a routerLink="/" class="flex items-center gap-3 text-foreground">
+        <div class="flex h-8 w-8 items-center justify-center rounded-[10px] bg-accent text-xs font-bold text-white">
+          SH
+        </div>
+        <div>
+          <div class="font-display text-[15px] font-bold leading-none">Smart Hire AI</div>
+          <div class="mt-1 text-[11px] uppercase tracking-[0.16em] text-[#9898A8]">
+            Intelligent Recruitment
+          </div>
+        </div>
+      </a>
+
+      <nav class="hidden items-center gap-7 text-sm font-medium text-[#5C5C72] lg:flex">
+        @for (item of navItems; track item.label) {
+          <a [href]="item.href" class="transition-colors hover:text-foreground">
+            {{ item.label }}
+          </a>
+        }
+      </nav>
+
+      <div class="hidden items-center gap-3 lg:flex">
+        <a
+          href="#impact"
+          class="rounded-full border border-[#DDDDE8] bg-white px-4 py-2 text-[13.5px] font-medium text-[#3C3C50] transition hover:border-[#AEAEC4] hover:bg-[#F7F7FB]"
+        >
+          Learn More
+        </a>
+        <a
+          href="#features"
+          class="rounded-full bg-accent px-4 py-2 text-[13.5px] font-semibold text-white transition hover:bg-accent-strong"
+        >
+          Explore Platform
+        </a>
+      </div>
+
+      <button
+        type="button"
+        class="flex h-10 w-10 items-center justify-center rounded-xl border border-line text-foreground transition hover:bg-[#F7F7FB] lg:hidden"
+        (click)="toggleMobileMenu()"
+        aria-label="Toggle menu"
+      >
+        <div class="flex flex-col gap-1.5">
+          <span
+            class="block h-0.5 w-[18px] rounded-full bg-current transition"
+            [style.transform]="mobileMenuOpen ? 'translateY(8px) rotate(45deg)' : 'none'"
+          ></span>
+          <span
+            class="block h-0.5 w-[18px] rounded-full bg-current transition"
+            [style.opacity]="mobileMenuOpen ? '0' : '1'"
+          ></span>
+          <span
+            class="block h-0.5 w-[18px] rounded-full bg-current transition"
+            [style.transform]="mobileMenuOpen ? 'translateY(-8px) rotate(-45deg)' : 'none'"
+          ></span>
+        </div>
+      </button>
+    </div>
+
+    @if (mobileMenuOpen) {
+      <div class="border-t border-line bg-white px-4 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.06)] lg:hidden">
+        <nav class="flex flex-col gap-1">
+          <a
+            href="#"
+            class="rounded-xl px-4 py-3 text-sm font-medium text-[#3C3C50] transition hover:bg-[#F5F3FF] hover:text-accent"
+            (click)="setActiveNav('home')"
+          >
+            Home
+          </a>
+          @for (item of navItems; track item.label) {
+            <a
+              [href]="item.href"
+              class="rounded-xl px-4 py-3 text-sm font-medium text-[#3C3C50] transition hover:bg-[#F5F3FF] hover:text-accent"
+              (click)="setActiveNav(item.label.toLowerCase())"
+            >
+              {{ item.label }}
+            </a>
+          }
+        </nav>
+        <div class="mt-4 grid gap-2 border-t border-[#F0F0F7] pt-4">
+          <a
+            href="#impact"
+            class="rounded-full border border-[#DDDDE8] px-4 py-2.5 text-center text-sm font-medium text-[#3C3C50]"
+            (click)="closeMobileMenu()"
+          >
+            Learn More
+          </a>
+          <a
+            href="#features"
+            class="rounded-full bg-accent px-4 py-2.5 text-center text-sm font-semibold text-white"
+            (click)="closeMobileMenu()"
+          >
+            Explore Platform
+          </a>
+        </div>
+      </div>
+    }
+  </header>
+
+  <router-outlet />
+
+  <footer class="border-t border-line bg-white">
+    <div class="mx-auto flex w-full max-w-[1240px] flex-col gap-2 px-4 py-6 text-sm text-[#9898A8] sm:px-6 md:flex-row md:items-center md:justify-between lg:px-10">
+      <p>Smart Hire AI bridges candidates and recruiters with AI-driven matching.</p>
+      <p>Built with Angular, Spring Boot, PostgreSQL, and AI services.</p>
+    </div>
+  </footer>
+
+  <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-white/95 px-2 py-2 backdrop-blur-xl lg:hidden">
+    <div class="mx-auto flex max-w-md items-center justify-between gap-1">
+      @for (item of bottomNavItems; track item.id) {
+        <a
+          [href]="item.href"
+          class="relative flex flex-1 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold transition"
+          [style.background]="activeNav === item.id ? '#F0EEFF' : 'transparent'"
+          [style.color]="activeNav === item.id ? '#4F46E5' : '#9898A8'"
+          (click)="setActiveNav(item.id)"
+        >
+          @switch (item.id) {
+            @case ('home') {
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9.5L10 3l7 6.5V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" />
+                <path d="M7 19v-7h6v7" />
+              </svg>
+            }
+            @case ('features') {
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="7" height="7" rx="1.5" />
+                <rect x="11" y="2" width="7" height="7" rx="1.5" />
+                <rect x="2" y="11" width="7" height="7" rx="1.5" />
+                <rect x="11" y="11" width="7" height="7" rx="1.5" />
+              </svg>
+            }
+            @case ('workflow') {
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="5" cy="5" r="2" />
+                <circle cx="15" cy="10" r="2" />
+                <circle cx="5" cy="15" r="2" />
+                <path d="M7 5h4a2 2 0 0 1 2 2v1M7 15h4a2 2 0 0 0 2-2v-1" />
+              </svg>
+            }
+            @default {
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 17l4-5 3 3 4-6 3 4" />
+                <path d="M17 6l-3 1 1-3" />
+              </svg>
+            }
+          }
+          <span>{{ item.label }}</span>
+          @if (activeNav === item.id) {
+            <span class="absolute bottom-1 h-1 w-1 rounded-full bg-accent"></span>
+          }
+        </a>
+      }
+
+      <a
+        href="#features"
+        class="flex flex-1 flex-col items-center gap-1 rounded-[14px] bg-accent px-1 py-2 text-[10px] font-semibold text-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+        (click)="closeMobileMenu()"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="10" cy="10" r="7" />
+          <path d="M10 7v3l2 2" />
+        </svg>
+        <span>Explore</span>
+      </a>
+    </div>
+  </nav>
+</div>
