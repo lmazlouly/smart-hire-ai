@@ -2,6 +2,7 @@ package com.smarthireai.service;
 
 import com.smarthireai.dto.CreateCandidateRequest;
 import com.smarthireai.entity.Candidate;
+import com.smarthireai.entity.User;
 import com.smarthireai.repository.CandidateRepository;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +22,14 @@ public class CandidateService {
     }
 
     public Candidate createCandidate(CreateCandidateRequest request) {
+        // TODO: This needs to be updated to work with authentication
+        // For now, creating a placeholder User object
+        User tempUser = new User();
+        tempUser.setFullName(request.fullName());
+        tempUser.setEmail(request.email());
+        
         Candidate candidate = new Candidate(
-                request.fullName(),
-                request.email(),
+                tempUser,
                 new ArrayList<>(request.skills() == null ? List.of() : request.skills()),
                 request.experienceYears(),
                 request.educationLevel()
