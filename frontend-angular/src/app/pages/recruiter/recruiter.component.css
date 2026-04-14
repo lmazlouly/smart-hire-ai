@@ -1,0 +1,102 @@
+.recruiter-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.recruiter-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 30px 0;
+  border-bottom: 3px solid #667eea;
+}
+
+.recruiter-header h1 {
+  margin: 0;
+  font-size: 2.5em;
+  color: #333;
+}
+
+.recruiter-header p {
+  margin: 10px 0 0 0;
+  color: #666;
+  font-size: 1.1em;
+}
+
+.candidates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.candidate-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.candidate-card:hover {
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  transform: translateY(-8px);
+}
+
+.candidate-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.candidate-header h3 {
+  margin: 0;
+  font-size: 1.3em;
+}
+
+.score-badge {
+  background: rgba(255,255,255,0.3);
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.95em;
+}
+
+.candidate-body {
+  padding: 20px;
+}
+
+.score-text {
+  margin: 0 0 15px 0;
+  color: #666;
+  font-size: 1em;
+}
+
+.btn-view {
+  width: 100%;
+  padding: 12px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.95em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-view:hover {
+  background: #764ba2;
+  transform: scale(1.02);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+  font-size: 1.2em;
+}
