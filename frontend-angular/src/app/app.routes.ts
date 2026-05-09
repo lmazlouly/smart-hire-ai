@@ -1,8 +1,12 @@
 import { Routes } from '@angular/router';
 import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
 import { HomePageComponent } from './pages/home-page/home-page.component';
-import { RecruiterComponent } from './pages/recruiter/recruiter.component';
-import { CandidateComponent } from './pages/candidate/candidate.component';
+import { RecruiterDashboardPageComponent } from './pages/recruiter-dashboard-page/recruiter-dashboard-page.component';
+import { CandidateDashboardPageComponent } from './pages/candidate-dashboard-page/candidate-dashboard-page.component';
+import { LoginPageComponent } from './pages/login-page/login-page.component';
+import { RegisterPageComponent } from './pages/register-page/register-page.component';
+import { roleGuard } from './guards/role.guard';
+import { guestGuard } from './guards/guest.guard';
 
 export const routes: Routes = [
   {
@@ -16,11 +20,25 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'login',
+    component: LoginPageComponent,
+    canActivate: [guestGuard]
+  },
+  {
+    path: 'register',
+    component: RegisterPageComponent,
+    canActivate: [guestGuard]
+  },
+  {
     path: 'recruiter',
-    component: RecruiterComponent
+    component: RecruiterDashboardPageComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['RECRUITER'] }
   },
   {
     path: 'candidate',
-    component: CandidateComponent
+    component: CandidateDashboardPageComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['CANDIDATE'] }
   }
 ];

@@ -41,6 +41,7 @@ Important:
 - Spring Boot needs `jdbc:postgresql://...`, not `postgres://...`
 - keep `.env` local only
 - do not commit `.env`
+- add a JWT secret for authentication too
 
 ## 3. Run the backend
 
@@ -64,3 +65,14 @@ After starting the backend, open:
 
 - `http://localhost:8080/swagger-ui.html`
 - `http://localhost:8080/v3/api-docs`
+
+## 6. Authentication setup
+
+Add these lines to your local `backend/.env`:
+
+```properties
+security.jwt.secret=YOUR_LONG_JWT_SECRET_KEY
+security.jwt.expiration-ms=86400000
+```
+
+Use a long random secret for `security.jwt.secret`.

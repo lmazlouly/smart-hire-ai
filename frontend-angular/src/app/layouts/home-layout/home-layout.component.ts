@@ -1,5 +1,6 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-home-layout',
@@ -8,6 +9,8 @@ import { RouterLink, RouterOutlet } from '@angular/router';
   templateUrl: './home-layout.component.html'
 })
 export class HomeLayoutComponent {
+  private readonly authService = inject(AuthService);
+
   mobileMenuOpen = false;
   activeNav = 'home';
 
@@ -30,6 +33,19 @@ export class HomeLayoutComponent {
 
   closeMobileMenu(): void {
     this.mobileMenuOpen = false;
+  }
+
+  isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  dashboardLink(): string {
+    return this.authService.getDashboardLink();
+  }
+
+  logout(): void {
+    this.closeMobileMenu();
+    this.authService.logout();
   }
 
   setActiveNav(id: string): void {

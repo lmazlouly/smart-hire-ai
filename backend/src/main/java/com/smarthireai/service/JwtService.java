@@ -1,77 +1,60 @@
 package com.smarthireai.service;
 
+import com.smarthireai.entity.AppUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
-
-import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 @Service
 public class JwtService {
-    
-    @Value("${jwt.secret:mySecretKey}")
-    private String secret;
-    
-    @Value("${jwt.expiration:86400000}")
-    private long expiration;
-    
-    private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes());
+
+    private final String secret;
+    private final long expirationMs;
+
+    public JwtService(
+            @Value("${security.jwt.secret}") String secret,
+            @Value("${security.jwt.expiration-ms}") long expirationMs
+    ) {
+        this.secret = secret;
+        this.expirationMs = expirationMs;
     }
-    
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+
+    public String generateToken(AppUser user) {
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + expirationMs);
+
+        return Jwts.builder()
+                .subject(user.getEmail())
+                .claim("role", user.getRole().name())
+                .issuedAt(now)
+                .expiration(expiration)
+                .signWith(getSigningKey())
+                .compact();
     }
-    
-    public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+
+    public String extractEmail(String token) {
+        return extractClaims(token).getSubject();
     }
-    
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+
+    public boolean isTokenValid(String token, AppUser user) {
+        Claims claims = extractClaims(token);
+        return user.getEmail().equals(claims.getSubject()) && claims.getExpiration().after(new Date());
     }
-    
-    private Claims extractAllClaims(String token) {
+
+    private Claims extractClaims(String token) {
         return Jwts.parser()
-                .verifyWith(getSigningKey())
+                .verifyWith((javax.crypto.SecretKey) getSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
     }
-    
-    private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-    
-    public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, userDetails.getUsername());
-    }
-    
-    public String generateToken(UserDetails userDetails, Map<String, Object> extraClaims) {
-        return createToken(extraClaims, userDetails.getUsername());
-    }
-    
-    private String createToken(Map<String, Object> claims, String subject) {
-        return Jwts.builder()
-                .claims(claims)
-                .subject(subject)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey())
-                .compact();
-    }
-    
-    public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 }

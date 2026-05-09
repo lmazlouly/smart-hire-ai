@@ -2,10 +2,11 @@ package com.smarthireai.dto;
 
 import com.smarthireai.entity.Role;
 
-public record RegisterRequest(
-        String fullName,
+public record AuthResponse(
+        String token,
+        String type,
         String email,
-        String password,
+        String fullName,
         Role role
 ) {
 }
