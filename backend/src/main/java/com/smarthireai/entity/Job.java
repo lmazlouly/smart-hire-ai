@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,10 @@ public class Job {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "recruiter_id", nullable = false)
+    private User recruiter;
 
     private String title;
     private String company;
@@ -33,7 +38,8 @@ public class Job {
     public Job() {
     }
 
-    public Job(String title, String company, List<String> requiredSkills, Integer minimumExperienceYears, String educationLevel) {
+    public Job(User recruiter, String title, String company, List<String> requiredSkills, Integer minimumExperienceYears, String educationLevel) {
+        this.recruiter = recruiter;
         this.title = title;
         this.company = company;
         this.requiredSkills = requiredSkills;
@@ -43,6 +49,14 @@ public class Job {
 
     public Long getId() {
         return id;
+    }
+
+    public User getRecruiter() {
+        return recruiter;
+    }
+
+    public void setRecruiter(User recruiter) {
+        this.recruiter = recruiter;
     }
 
     public String getTitle() {

@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +21,10 @@ public class Candidate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String fullName;
-    private String email;
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
+
     private Integer experienceYears;
     private String educationLevel;
 
@@ -33,9 +36,8 @@ public class Candidate {
     public Candidate() {
     }
 
-    public Candidate(String fullName, String email, List<String> skills, Integer experienceYears, String educationLevel) {
-        this.fullName = fullName;
-        this.email = email;
+    public Candidate(User user, List<String> skills, Integer experienceYears, String educationLevel) {
+        this.user = user;
         this.skills = skills;
         this.experienceYears = experienceYears;
         this.educationLevel = educationLevel;
@@ -45,20 +47,20 @@ public class Candidate {
         return id;
     }
 
-    public String getFullName() {
-        return fullName;
+    public User getUser() {
+        return user;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public String getFullName() {
+        return user != null ? user.getFullName() : null;
     }
 
     public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
+        return user != null ? user.getEmail() : null;
     }
 
     public List<String> getSkills() {
