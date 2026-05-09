@@ -22,18 +22,34 @@
       </nav>
 
       <div class="hidden items-center gap-3 lg:flex">
-        <a
-          href="#impact"
-          class="rounded-full border border-[#DDDDE8] bg-white px-4 py-2 text-[13.5px] font-medium text-[#3C3C50] transition hover:border-[#AEAEC4] hover:bg-[#F7F7FB]"
-        >
-          Learn More
-        </a>
-        <a
-          href="#features"
-          class="rounded-full bg-accent px-4 py-2 text-[13.5px] font-semibold text-white transition hover:bg-accent-strong"
-        >
-          Explore Platform
-        </a>
+        @if (isLoggedIn()) {
+          <a
+            [routerLink]="dashboardLink()"
+            class="rounded-full bg-accent px-4 py-2 text-[13.5px] font-semibold text-white transition hover:bg-accent-strong"
+          >
+            Dashboard
+          </a>
+          <button
+            type="button"
+            class="rounded-full border border-[#DDDDE8] bg-white px-4 py-2 text-[13.5px] font-medium text-[#3C3C50] transition hover:border-[#AEAEC4] hover:bg-[#F7F7FB]"
+            (click)="logout()"
+          >
+            Logout
+          </button>
+        } @else {
+          <a
+            routerLink="/login"
+            class="rounded-full border border-[#DDDDE8] bg-white px-4 py-2 text-[13.5px] font-medium text-[#3C3C50] transition hover:border-[#AEAEC4] hover:bg-[#F7F7FB]"
+          >
+            Login
+          </a>
+          <a
+            routerLink="/register"
+            class="rounded-full bg-accent px-4 py-2 text-[13.5px] font-semibold text-white transition hover:bg-accent-strong"
+          >
+            Register
+          </a>
+        }
       </div>
 
       <button
@@ -80,20 +96,37 @@
           }
         </nav>
         <div class="mt-4 grid gap-2 border-t border-[#F0F0F7] pt-4">
-          <a
-            href="#impact"
-            class="rounded-full border border-[#DDDDE8] px-4 py-2.5 text-center text-sm font-medium text-[#3C3C50]"
-            (click)="closeMobileMenu()"
-          >
-            Learn More
-          </a>
-          <a
-            href="#features"
-            class="rounded-full bg-accent px-4 py-2.5 text-center text-sm font-semibold text-white"
-            (click)="closeMobileMenu()"
-          >
-            Explore Platform
-          </a>
+          @if (isLoggedIn()) {
+            <a
+              [routerLink]="dashboardLink()"
+              class="rounded-full bg-accent px-4 py-2.5 text-center text-sm font-semibold text-white"
+              (click)="closeMobileMenu()"
+            >
+              Dashboard
+            </a>
+            <button
+              type="button"
+              class="rounded-full border border-[#DDDDE8] px-4 py-2.5 text-center text-sm font-medium text-[#3C3C50]"
+              (click)="logout()"
+            >
+              Logout
+            </button>
+          } @else {
+            <a
+              routerLink="/login"
+              class="rounded-full border border-[#DDDDE8] px-4 py-2.5 text-center text-sm font-medium text-[#3C3C50]"
+              (click)="closeMobileMenu()"
+            >
+              Login
+            </a>
+            <a
+              routerLink="/register"
+              class="rounded-full bg-accent px-4 py-2.5 text-center text-sm font-semibold text-white"
+              (click)="closeMobileMenu()"
+            >
+              Register
+            </a>
+          }
         </div>
       </div>
     }
