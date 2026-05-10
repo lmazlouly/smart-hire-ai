@@ -37,10 +37,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**", "/api/health", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/jobs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/candidates/**").hasRole("RECRUITER")
                         .requestMatchers(HttpMethod.POST, "/api/candidates/**").hasRole("CANDIDATE")
                         .requestMatchers(HttpMethod.POST, "/api/jobs/**").hasRole("RECRUITER")
-                        .requestMatchers(HttpMethod.GET, "/api/jobs/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
