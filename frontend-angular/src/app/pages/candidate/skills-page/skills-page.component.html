@@ -1,0 +1,211 @@
+<main class="min-h-screen bg-[#F8F9FB] px-4 py-10 sm:px-6 lg:px-10">
+  <section class="mx-auto max-w-[1240px]">
+    <!-- Header -->
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <button 
+          (click)="goBack()"
+          class="mb-4 flex items-center gap-2 text-sm font-medium text-[#606078] hover:text-[#0D0D14]"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Back to Dashboard
+        </button>
+        <h1 class="font-display text-3xl font-extrabold tracking-[-0.03em] text-[#0D0D14]">
+          My Skills
+        </h1>
+        <p class="mt-2 text-sm text-[#606078]">
+          Manage your skills and discover new ones to learn
+        </p>
+      </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[1fr_1fr]">
+      <!-- Skills List -->
+      <div class="rounded-[24px] border border-[#EBEBF0] bg-white p-8 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+        <div class="mb-6 flex items-center justify-between">
+          <h2 class="font-display text-xl font-bold text-[#0D0D14]">Current Skills</h2>
+          <span class="rounded-full bg-[#F0F0FF] px-3 py-1 text-xs font-medium text-[#6366F1]">
+            {{ skills.length }} Skills
+          </span>
+        </div>
+
+        <!-- Add Skill Form -->
+        <form [formGroup]="skillForm" (ngSubmit)="addSkill()" class="mb-6 rounded-2xl bg-[#FAFAFA] p-4">
+          <div class="grid gap-4 md:grid-cols-3">
+            <input
+              type="text"
+              formControlName="name"
+              placeholder="Skill name"
+              class="rounded-xl border border-[#EBEBF0] bg-white px-4 py-2.5 text-sm text-[#0D0D14] placeholder-[#A0A0B0] focus:border-[#6366F1] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/20"
+            />
+            <select
+              formControlName="category"
+              class="rounded-xl border border-[#EBEBF0] bg-white px-4 py-2.5 text-sm text-[#0D0D14] focus:border-[#6366F1] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/20"
+            >
+              <option *ngFor="let category of categories" [value]="category">
+                {{ category }}
+              </option>
+            </select>
+            <select
+              formControlName="level"
+              class="rounded-xl border border-[#EBEBF0] bg-white px-4 py-2.5 text-sm text-[#0D0D14] focus:border-[#6366F1] focus:outline-none focus:ring-2 focus:ring-[#6366F1]/20"
+            >
+              <option *ngFor="let level of levels" [value]="level">
+                {{ level | titlecase }}
+              </option>
+            </select>
+          </div>
+          <button
+            type="submit"
+            class="mt-4 w-full rounded-full bg-[#0D0D14] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#1A1A24]"
+          >
+            Add Skill
+          </button>
+        </form>
+
+        <!-- Skills by Category -->
+        <div class="space-y-6">
+          <ng-container *ngFor="let category of categories">
+            <div *ngIf="getSkillsByCategory()[category] && getSkillsByCategory()[category]!.length > 0">
+              <h3 class="mb-3 text-sm font-medium text-[#0D0D14]">{{ category }}</h3>
+              <div class="space-y-2">
+                <div
+                  *ngFor="let skill of getSkillsByCategory()[category]"
+                  class="flex items-center justify-between rounded-xl bg-[#FAFAFA] px-4 py-3"
+                >
+                  <div class="flex items-center gap-3">
+                    <span class="text-sm font-medium text-[#0D0D14]">{{ skill.name }}</span>
+                    <span
+                      [class]="getLevelColor(skill.level)"
+                      class="rounded-full px-2 py-0.5 text-xs font-medium capitalize"
+                    >
+                      {{ skill.level }}
+                    </span>
+                  </div>
+                  <button
+                    (click)="removeSkill(skill.name)"
+                    class="rounded-full p-1.5 text-[#606078] hover:bg-[#FFE4E4] hover:text-[#DC2626]"
+                  >
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Empty State -->
+        <div
+          *ngIf="skills.length === 0"
+          class="py-12 text-center"
+        >
+          <div class="mx-auto mb-4 h-16 w-16 rounded-full bg-[#EBEBF0] flex items-center justify-center">
+            <svg class="h-8 w-8 text-[#606078]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+          </div>
+          <p class="text-sm text-[#606078]">
+            No skills added yet. Start by adding your first skill above.
+          </p>
+        </div>
+      </div>
+
+      <!-- Recommended Skills -->
+      <div class="space-y-6">
+        <!-- Skill Recommendations -->
+        <div class="rounded-[24px] border border-[#EBEBF0] bg-white p-8 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+          <h2 class="font-display text-xl font-bold text-[#0D0D14]">Recommended Skills</h2>
+          <p class="mt-2 text-sm text-[#606078]">
+            Skills that could boost your career prospects
+          </p>
+
+          <div class="mt-6 space-y-4">
+            <div
+              *ngFor="let rec of recommendedSkills"
+              class="rounded-xl bg-gradient-to-r from-[#F0F0FF] to-[#FAFAFF] border border-[#E0E0FF] p-4"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <h3 class="font-medium text-[#0D0D14]">{{ rec.name }}</h3>
+                  <p class="mt-1 text-xs text-[#606078]">{{ rec.reason }}</p>
+                </div>
+                <button
+                  (click)="skillForm.patchValue({ name: rec.name }); addSkill()"
+                  class="rounded-full bg-[#6366F1] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#5558E8]"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skill Stats -->
+        <div class="rounded-[24px] border border-[#EBEBF0] bg-white p-8 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+          <h2 class="font-display text-xl font-bold text-[#0D0D14]">Skill Overview</h2>
+          <p class="mt-2 text-sm text-[#606078]">
+            Your skill distribution
+          </p>
+
+          <div class="mt-6 space-y-4">
+            <div>
+              <div class="mb-2 flex justify-between text-sm">
+                <span class="text-[#606078]">Expert</span>
+                <span class="font-medium text-[#0D0D14]">{{ getSkillPercentage('expert') | number:'1.0-0' }}%</span>
+              </div>
+              <div class="h-2 w-full rounded-full bg-[#EBEBF0]">
+                <div
+                  class="h-2 rounded-full bg-[#10B981]"
+                  [style.width.%]="getSkillPercentage('expert')"
+                ></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="mb-2 flex justify-between text-sm">
+                <span class="text-[#606078]">Advanced</span>
+                <span class="font-medium text-[#0D0D14]">{{ getSkillPercentage('advanced') | number:'1.0-0' }}%</span>
+              </div>
+              <div class="h-2 w-full rounded-full bg-[#EBEBF0]">
+                <div
+                  class="h-2 rounded-full bg-[#6366F1]"
+                  [style.width.%]="getSkillPercentage('advanced')"
+                ></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="mb-2 flex justify-between text-sm">
+                <span class="text-[#606078]">Intermediate</span>
+                <span class="font-medium text-[#0D0D14]">{{ getSkillPercentage('intermediate') | number:'1.0-0' }}%</span>
+              </div>
+              <div class="h-2 w-full rounded-full bg-[#EBEBF0]">
+                <div
+                  class="h-2 rounded-full bg-[#F59E0B]"
+                  [style.width.%]="getSkillPercentage('intermediate')"
+                ></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="mb-2 flex justify-between text-sm">
+                <span class="text-[#606078]">Beginner</span>
+                <span class="font-medium text-[#0D0D14]">{{ getSkillPercentage('beginner') | number:'1.0-0' }}%</span>
+              </div>
+              <div class="h-2 w-full rounded-full bg-[#EBEBF0]">
+                <div
+                  class="h-2 rounded-full bg-[#606078]"
+                  [style.width.%]="getSkillPercentage('beginner')"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

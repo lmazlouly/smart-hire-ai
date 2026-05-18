@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -44,6 +45,11 @@ public class JwtService {
     public boolean isTokenValid(String token, AppUser user) {
         Claims claims = extractClaims(token);
         return user.getEmail().equals(claims.getSubject()) && claims.getExpiration().after(new Date());
+    }
+
+    public boolean validateToken(String token, UserDetails userDetails) {
+        Claims claims = extractClaims(token);
+        return userDetails.getUsername().equals(claims.getSubject()) && claims.getExpiration().after(new Date());
     }
 
     private Claims extractClaims(String token) {

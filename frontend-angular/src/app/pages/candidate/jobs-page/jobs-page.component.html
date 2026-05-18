@@ -1,0 +1,128 @@
+<main class="min-h-screen bg-[#F8F9FB] px-4 py-10 sm:px-6 lg:px-10">
+  <section class="mx-auto max-w-[1240px]">
+    <!-- Header -->
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <button 
+          (click)="goBack()"
+          class="mb-4 flex items-center gap-2 text-sm font-medium text-[#606078] hover:text-[#0D0D14]"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Back to Dashboard
+        </button>
+        <h1 class="font-display text-3xl font-extrabold tracking-[-0.03em] text-[#0D0D14]">
+          Recommended Jobs
+        </h1>
+        <p class="mt-2 text-sm text-[#606078]">
+          Jobs matched to your skills and experience
+        </p>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="mb-6 flex flex-wrap gap-2">
+      <button
+        *ngFor="let filter of filters"
+        (click)="selectedFilter = filter"
+        [class]="selectedFilter === filter ? 'bg-[#0D0D14] text-white' : 'bg-white text-[#606078] hover:bg-[#F7F7FB]'"
+        class="rounded-full border border-[#EBEBF0] px-4 py-2 text-sm font-medium transition"
+      >
+        {{ filter | titlecase }}
+      </button>
+    </div>
+
+    <!-- Jobs Grid -->
+    <div class="grid gap-6 md:grid-cols-2">
+      <div
+        *ngFor="let job of filteredJobs"
+        class="rounded-[24px] border border-[#EBEBF0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
+      >
+        <!-- Match Score -->
+        <div class="mb-4 flex items-center justify-between">
+          <div
+            [class]="getMatchScoreBg(job.matchScore)"
+            class="rounded-full px-3 py-1.5"
+          >
+            <span
+              [class]="getMatchScoreColor(job.matchScore)"
+              class="text-sm font-bold"
+            >
+              {{ job.matchScore }}% Match
+            </span>
+          </div>
+          <span class="text-xs text-[#606078]">
+            Posted {{ job.postedDate | date:'relative' }}
+          </span>
+        </div>
+
+        <!-- Job Title & Company -->
+        <h3 class="font-display text-lg font-bold text-[#0D0D14]">{{ job.title }}</h3>
+        <p class="mt-1 text-sm text-[#606078]">{{ job.company }}</p>
+
+        <!-- Location & Salary -->
+        <div class="mt-4 flex flex-wrap gap-4 text-sm">
+          <div class="flex items-center gap-2 text-[#606078]">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            {{ job.location }}
+          </div>
+          <div class="flex items-center gap-2 text-[#606078]">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ job.salary }}
+          </div>
+        </div>
+
+        <!-- Required Skills -->
+        <div class="mt-4">
+          <p class="mb-2 text-xs font-medium text-[#606078]">Required Skills</p>
+          <div class="flex flex-wrap gap-2">
+            <span
+              *ngFor="let skill of job.requiredSkills"
+              class="rounded-full bg-[#F0F0FF] px-2.5 py-1 text-xs font-medium text-[#6366F1]"
+            >
+              {{ skill }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="mt-6 flex gap-3">
+          <button
+            (click)="viewJobDetails(job.id)"
+            class="flex-1 rounded-full border border-[#DDDDE8] bg-white px-4 py-2.5 text-sm font-medium text-[#3C3C50] transition hover:border-[#AEAEC4] hover:bg-[#F7F7FB]"
+          >
+            View Details
+          </button>
+          <button
+            (click)="applyToJob(job.id)"
+            class="flex-1 rounded-full bg-[#0D0D14] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#1A1A24]"
+          >
+            Apply Now
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div
+      *ngIf="filteredJobs.length === 0"
+      class="rounded-[24px] border border-[#EBEBF0] bg-white p-12 text-center shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+    >
+      <div class="mx-auto mb-4 h-16 w-16 rounded-full bg-[#EBEBF0] flex items-center justify-center">
+        <svg class="h-8 w-8 text-[#606078]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <h3 class="font-display text-lg font-bold text-[#0D0D14]">No jobs found</h3>
+      <p class="mt-2 text-sm text-[#606078]">
+        Try adjusting your filters or check back later for new opportunities
+      </p>
+    </div>
+  </section>
+</main>

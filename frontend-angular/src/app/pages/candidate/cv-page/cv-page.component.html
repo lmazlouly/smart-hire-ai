@@ -1,0 +1,183 @@
+<main class="min-h-screen bg-[#F8F9FB] px-4 py-10 sm:px-6 lg:px-10">
+  <section class="mx-auto max-w-[1240px]">
+    <!-- Header -->
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <button 
+          (click)="goBack()"
+          class="mb-4 flex items-center gap-2 text-sm font-medium text-[#606078] hover:text-[#0D0D14]"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Back to Dashboard
+        </button>
+        <h1 class="font-display text-3xl font-extrabold tracking-[-0.03em] text-[#0D0D14]">
+          CV Management
+        </h1>
+        <p class="mt-2 text-sm text-[#606078]">
+          Upload your CV and let AI extract your skills and experience
+        </p>
+      </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[1fr_1fr]">
+      <!-- Upload Section -->
+      <div class="rounded-[24px] border border-[#EBEBF0] bg-white p-8 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+        <h2 class="font-display text-xl font-bold text-[#0D0D14]">Upload CV</h2>
+        <p class="mt-2 text-sm text-[#606078]">
+          Upload your CV in PDF or DOCX format for AI analysis
+        </p>
+
+        <!-- Upload Area -->
+        <div
+          *ngIf="!cvUploaded"
+          class="mt-6 rounded-2xl border-2 border-dashed border-[#EBEBF0] bg-[#FAFAFA] p-8 text-center transition hover:border-[#6366F1] hover:bg-[#F0F0FF]"
+        >
+          <div class="mx-auto mb-4 h-16 w-16 rounded-full bg-[#E0E0FF] flex items-center justify-center">
+            <svg class="h-8 w-8 text-[#6366F1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+          </div>
+          <p class="text-sm font-medium text-[#0D0D14]">
+            Drag and drop your CV here
+          </p>
+          <p class="mt-1 text-xs text-[#606078]">
+            or click to browse files
+          </p>
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx"
+            (change)="onFileSelected($event)"
+            class="absolute inset-0 cursor-pointer opacity-0"
+          />
+        </div>
+
+        <!-- Upload Progress -->
+        <div *ngIf="isUploading" class="mt-6">
+          <div class="mb-2 flex justify-between text-sm">
+            <span class="text-[#606078]">Uploading...</span>
+            <span class="font-medium text-[#0D0D14]">{{ uploadProgress }}%</span>
+          </div>
+          <div class="h-2 w-full rounded-full bg-[#EBEBF0]">
+            <div
+              class="h-2 rounded-full bg-[#6366F1] transition-all duration-300"
+              [style.width.%]="uploadProgress"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Uploaded CV Info -->
+        <div *ngIf="cvUploaded && !isUploading" class="mt-6">
+          <div class="rounded-2xl bg-[#F0FFF4] border border-[#10B981]/20 p-4">
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 rounded-full bg-[#10B981] flex items-center justify-center">
+                <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-sm font-medium text-[#0D0D14]">{{ cvFileName }}</p>
+                <p class="text-xs text-[#606078]">
+                  Uploaded on {{ cvUploadDate | date:'mediumDate' }}
+                </p>
+              </div>
+              <button
+                (click)="deleteCV()"
+                class="rounded-full p-2 text-[#606078] hover:bg-[#FFE4E4] hover:text-[#DC2626]"
+              >
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4 flex gap-3">
+            <button
+              (click)="reprocessCV()"
+              [disabled]="cvStatus === 'processing'"
+              class="flex-1 rounded-full border border-[#DDDDE8] bg-white px-4 py-2.5 text-sm font-medium text-[#3C3C50] transition hover:border-[#AEAEC4] hover:bg-[#F7F7FB] disabled:opacity-50"
+            >
+              Reprocess CV
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Extracted Data Section -->
+      <div class="rounded-[24px] border border-[#EBEBF0] bg-white p-8 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+        <div class="mb-6 flex items-center justify-between">
+          <h2 class="font-display text-xl font-bold text-[#0D0D14]">Extracted Information</h2>
+          <span
+            [class]="cvStatus === 'completed' ? 'bg-[#F0FFF4] text-[#10B981]' : 'bg-[#FFF4ED] text-[#F59E0B]'"
+            class="rounded-full px-3 py-1 text-xs font-medium"
+          >
+            {{ cvStatus === 'completed' ? 'Completed' : 'Pending' }}
+          </span>
+        </div>
+
+        <div *ngIf="cvStatus === 'pending'" class="text-center py-12">
+          <div class="mx-auto mb-4 h-16 w-16 rounded-full bg-[#EBEBF0] flex items-center justify-center">
+            <svg class="h-8 w-8 text-[#606078]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <p class="text-sm text-[#606078]">
+            Upload your CV to see extracted information
+          </p>
+        </div>
+
+        <div *ngIf="cvStatus === 'processing'" class="text-center py-12">
+          <div class="mx-auto mb-4 h-16 w-16 rounded-full bg-[#E0E0FF] flex items-center justify-center">
+            <svg class="h-8 w-8 text-[#6366F1] animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+          <p class="text-sm text-[#606078]">
+            AI is analyzing your CV...
+          </p>
+        </div>
+
+        <div *ngIf="cvStatus === 'completed'" class="space-y-6">
+          <!-- Skills -->
+          <div>
+            <h3 class="mb-3 text-sm font-medium text-[#0D0D14]">Skills</h3>
+            <div class="flex flex-wrap gap-2">
+              <span
+                *ngFor="let skill of extractedData.skills"
+                class="rounded-full bg-[#F0F0FF] px-3 py-1.5 text-xs font-medium text-[#6366F1]"
+              >
+                {{ skill }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Experience -->
+          <div>
+            <h3 class="mb-3 text-sm font-medium text-[#0D0D14]">Experience</h3>
+            <div class="rounded-xl bg-[#FAFAFA] px-4 py-3">
+              <p class="text-sm text-[#0D0D14]">{{ extractedData.experience }} years</p>
+            </div>
+          </div>
+
+          <!-- Education -->
+          <div>
+            <h3 class="mb-3 text-sm font-medium text-[#0D0D14]">Education</h3>
+            <div class="rounded-xl bg-[#FAFAFA] px-4 py-3">
+              <p class="text-sm text-[#0D0D14]">{{ extractedData.education }}</p>
+            </div>
+          </div>
+
+          <!-- Last Updated -->
+          <div class="pt-4 border-t border-[#EBEBF0]">
+            <p class="text-xs text-[#606078]">
+              Last updated: {{ extractedData.lastUpdated | date:'medium' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
