@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
+import { API_BASE_URL } from '../config/api.config';
 
 type UserRole = 'CANDIDATE' | 'RECRUITER';
 
@@ -31,7 +32,8 @@ export interface AuthResponse {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly apiUrl = 'http://localhost:8080/api/auth';
+  private readonly apiUrl = `${API_BASE_URL}/auth`;
+
   private readonly session = signal<AuthResponse | null>(this.readSession());
 
   login(payload: LoginPayload): Observable<AuthResponse> {
