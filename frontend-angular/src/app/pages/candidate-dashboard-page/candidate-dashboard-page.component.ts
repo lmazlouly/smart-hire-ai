@@ -1,17 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
-
-interface Job {
-  id: number;
-  title: string;
-  company: string;
-  requiredSkills: string[];
-  minimumExperienceYears: number;
-  educationLevel: string;
-}
+import { Job, JobService } from '../../services/job.service';
 
 @Component({
   selector: 'app-candidate-dashboard-page',
@@ -21,7 +12,7 @@ interface Job {
 })
 export class CandidateDashboardPageComponent implements OnInit {
   private readonly authService = inject(AuthService);
-  private readonly http = inject(HttpClient);
+  private readonly jobService = inject(JobService);
 
   jobs = signal<Job[]>([]);
   isLoadingJobs = signal(true);
@@ -47,7 +38,7 @@ export class CandidateDashboardPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.http.get<Job[]>('http://localhost:8080/api/jobs').subscribe({
+    this.jobService.getJobs().subscribe({
       next: (data) => {
         this.jobs.set(data.slice(0, 3));
         this.isLoadingJobs.set(false);

@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { JobService } from '../../services/job.service';
 
 @Component({
   selector: 'app-create-job-page',
@@ -11,7 +11,7 @@ import { HttpClient } from '@angular/common/http';
   templateUrl: './create-job-page.component.html'
 })
 export class CreateJobPageComponent {
-  private readonly http = inject(HttpClient);
+  private readonly jobService = inject(JobService);
   private readonly router = inject(Router);
 
   title = '';
@@ -46,7 +46,7 @@ export class CreateJobPageComponent {
       educationLevel: this.educationLevel
     };
 
-    this.http.post('http://localhost:8080/api/jobs', payload).subscribe({
+    this.jobService.createJob(payload).subscribe({
       next: () => {
         this.isSubmitting.set(false);
         this.router.navigate(['/recruiter']);
