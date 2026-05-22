@@ -51,13 +51,14 @@
         <p class="mt-2 text-sm leading-7 text-[#606078]">Use simple information now. We can enrich the profile later.</p>
       </div>
 
-      <form class="space-y-5" (ngSubmit)="submit()">
+      <form class="space-y-5" data-testid="register-form" (ngSubmit)="submit()">
         <div>
           <label class="mb-2 block text-sm font-medium text-[#3C3C50]" for="register-name">Full name</label>
           <input
             id="register-name"
             type="text"
             name="fullName"
+            data-testid="register-name-input"
             [(ngModel)]="fullName"
             class="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#0D0D14] outline-none transition focus:border-accent"
             placeholder="Your full name"
@@ -71,6 +72,7 @@
             id="register-email"
             type="email"
             name="email"
+            data-testid="register-email-input"
             [(ngModel)]="email"
             class="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#0D0D14] outline-none transition focus:border-accent"
             placeholder="you@example.com"
@@ -84,6 +86,7 @@
             id="register-password"
             type="password"
             name="password"
+            data-testid="register-password-input"
             [(ngModel)]="password"
             class="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#0D0D14] outline-none transition focus:border-accent"
             placeholder="Choose a password"
@@ -96,6 +99,7 @@
           <select
             id="register-role"
             name="role"
+            data-testid="register-role-select"
             [(ngModel)]="role"
             class="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#0D0D14] outline-none transition focus:border-accent"
           >
@@ -105,13 +109,14 @@
         </div>
 
         @if (errorMessage) {
-          <div class="rounded-2xl border border-[#F3D3D3] bg-[#FFF5F5] px-4 py-3 text-sm text-[#B42318]">
+          <div data-testid="register-error" class="rounded-2xl border border-[#F3D3D3] bg-[#FFF5F5] px-4 py-3 text-sm text-[#B42318]">
             {{ errorMessage }}
           </div>
         }
 
         <button
           type="submit"
+          data-testid="register-submit"
           class="w-full rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-70"
           [disabled]="isSubmitting"
         >

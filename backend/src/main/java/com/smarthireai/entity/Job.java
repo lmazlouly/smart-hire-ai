@@ -1,9 +1,11 @@
 package com.smarthireai.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -23,14 +25,15 @@ public class Job {
 
     @ManyToOne
     @JoinColumn(name = "recruiter_id", nullable = false)
-    private User recruiter;
+    @JsonIgnore
+    private AppUser recruiter;
 
     private String title;
     private String company;
     private Integer minimumExperienceYears;
     private String educationLevel;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "job_required_skills", joinColumns = @JoinColumn(name = "job_id"))
     @Column(name = "skill")
     private List<String> requiredSkills = new ArrayList<>();
@@ -38,7 +41,7 @@ public class Job {
     public Job() {
     }
 
-    public Job(User recruiter, String title, String company, List<String> requiredSkills, Integer minimumExperienceYears, String educationLevel) {
+    public Job(AppUser recruiter, String title, String company, List<String> requiredSkills, Integer minimumExperienceYears, String educationLevel) {
         this.recruiter = recruiter;
         this.title = title;
         this.company = company;
@@ -51,11 +54,11 @@ public class Job {
         return id;
     }
 
-    public User getRecruiter() {
+    public AppUser getRecruiter() {
         return recruiter;
     }
 
-    public void setRecruiter(User recruiter) {
+    public void setRecruiter(AppUser recruiter) {
         this.recruiter = recruiter;
     }
 

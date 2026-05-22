@@ -63,13 +63,14 @@
         <p class="mt-2 text-sm leading-7 text-[#606078]">Use your email and password to access the platform.</p>
       </div>
 
-      <form class="space-y-5" (ngSubmit)="submit()">
+      <form class="space-y-5" data-testid="login-form" (ngSubmit)="submit()">
         <div>
           <label class="mb-2 block text-sm font-medium text-[#3C3C50]" for="login-email">Email</label>
           <input
             id="login-email"
             type="email"
             name="email"
+            data-testid="login-email-input"
             [(ngModel)]="email"
             class="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#0D0D14] outline-none transition focus:border-accent"
             placeholder="you@example.com"
@@ -83,6 +84,7 @@
             id="login-password"
             type="password"
             name="password"
+            data-testid="login-password-input"
             [(ngModel)]="password"
             class="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#0D0D14] outline-none transition focus:border-accent"
             placeholder="Enter your password"
@@ -91,13 +93,14 @@
         </div>
 
         @if (errorMessage) {
-          <div class="rounded-2xl border border-[#F3D3D3] bg-[#FFF5F5] px-4 py-3 text-sm text-[#B42318]">
+          <div data-testid="login-error" class="rounded-2xl border border-[#F3D3D3] bg-[#FFF5F5] px-4 py-3 text-sm text-[#B42318]">
             {{ errorMessage }}
           </div>
         }
 
         <button
           type="submit"
+          data-testid="login-submit"
           class="w-full rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-70"
           [disabled]="isSubmitting"
         >
