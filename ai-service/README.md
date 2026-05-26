@@ -76,7 +76,6 @@ Interactive API docs: `http://localhost:8000/docs`
 |--------|-----------------|---------------------------------------------|
 | GET    | /health         | Check if service is running                 |
 | POST   | /parse-cv       | Upload a PDF CV, get structured profile     |
-| POST   | /parse-cv-text  | Send plain text CV, get structured profile  |
 | POST   | /match          | Send candidate + job data, get match score  |
 
 ---

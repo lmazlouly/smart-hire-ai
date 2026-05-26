@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +28,9 @@ public class Candidate {
 
     private Integer experienceYears;
     private String educationLevel;
+    @Column(columnDefinition = "text")
+    private String embeddingText;
+    private LocalDateTime embeddingUpdatedAt;
 
     @ElementCollection
     @CollectionTable(name = "candidate_skills", joinColumns = @JoinColumn(name = "candidate_id"))
@@ -85,5 +89,21 @@ public class Candidate {
 
     public void setEducationLevel(String educationLevel) {
         this.educationLevel = educationLevel;
+    }
+
+    public String getEmbeddingText() {
+        return embeddingText;
+    }
+
+    public void setEmbeddingText(String embeddingText) {
+        this.embeddingText = embeddingText;
+    }
+
+    public LocalDateTime getEmbeddingUpdatedAt() {
+        return embeddingUpdatedAt;
+    }
+
+    public void setEmbeddingUpdatedAt(LocalDateTime embeddingUpdatedAt) {
+        this.embeddingUpdatedAt = embeddingUpdatedAt;
     }
 }

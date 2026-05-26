@@ -4,15 +4,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.smarthireai.repository.JobRepository;
 import com.smarthireai.repository.UserRepository;
+import com.smarthireai.service.EmbeddingClient;
+import com.smarthireai.service.EmbeddingStore;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class JobControllerTest {
@@ -112,6 +118,83 @@ class JobControllerTest {
         assertThat(jobRepository.count()).isZero();
     }
 
+    @Test
+    void recruiterCanListOnlyTheirOwnJobsAndOpenDetails() throws Exception {
+        String firstRecruiterToken = registerAndGetToken(
+                "First Recruiter",
+                "first-recruiter@example.com",
+                "RECRUITER"
+        );
+        String secondRecruiterToken = registerAndGetToken(
+                "Second Recruiter",
+                "second-recruiter@example.com",
+                "RECRUITER"
+        );
+
+        HttpResponse<String> firstJob = postJson("/api/jobs", jobPayload("Backend Engineer", "Platform"), firstRecruiterToken);
+        postJson("/api/jobs", jobPayload("Frontend Engineer", "Product"), secondRecruiterToken);
+
+        Long firstJobId = extractLong(firstJob.body(), "\"id\":");
+        HttpResponse<String> myJobs = get("/api/jobs/my", firstRecruiterToken);
+        HttpResponse<String> detail = get("/api/jobs/" + firstJobId, firstRecruiterToken);
+
+        assertThat(myJobs.statusCode()).isEqualTo(200);
+        assertThat(myJobs.body()).contains("\"title\":\"Backend Engineer\"");
+        assertThat(myJobs.body()).doesNotContain("\"title\":\"Frontend Engineer\"");
+
+        assertThat(detail.statusCode()).isEqualTo(200);
+        assertThat(detail.body()).contains("\"title\":\"Backend Engineer\"");
+        assertThat(detail.body()).contains("\"department\":\"Platform\"");
+    }
+
+    @Test
+    void recruiterCanUpdateTheirOwnJobButNotAnotherRecruitersJob() throws Exception {
+        String ownerToken = registerAndGetToken(
+                "Owner Recruiter",
+                "owner-recruiter@example.com",
+                "RECRUITER"
+        );
+        String otherToken = registerAndGetToken(
+                "Other Recruiter",
+                "other-recruiter@example.com",
+                "RECRUITER"
+        );
+
+        HttpResponse<String> created = postJson("/api/jobs", jobPayload("Backend Engineer", "Platform"), ownerToken);
+        Long jobId = extractLong(created.body(), "\"id\":");
+
+        HttpResponse<String> forbidden = putJson("/api/jobs/" + jobId, jobPayload("Stolen Title", "Other"), otherToken);
+        HttpResponse<String> updated = putJson("/api/jobs/" + jobId, jobPayload("Senior Backend Engineer", "AI Platform"), ownerToken);
+
+        assertThat(forbidden.statusCode()).isNotEqualTo(200);
+        assertThat(updated.statusCode()).isEqualTo(200);
+        assertThat(updated.body()).contains("\"title\":\"Senior Backend Engineer\"");
+        assertThat(updated.body()).contains("\"department\":\"AI Platform\"");
+        assertThat(updated.body()).contains("\"status\":\"Open\"");
+    }
+
+    @Test
+    void recruiterJobCreateAndUpdateRefreshEmbeddingText() throws Exception {
+        String token = registerAndGetToken(
+                "Embedding Recruiter",
+                "embedding-recruiter@example.com",
+                "RECRUITER"
+        );
+
+        HttpResponse<String> created = postJson("/api/jobs", jobPayload("Backend Engineer", "Platform"), token);
+        Long jobId = extractLong(created.body(), "\"id\":");
+
+        assertThat(created.statusCode()).isEqualTo(201);
+        assertThat(jobRepository.findById(jobId).orElseThrow().getEmbeddingText())
+                .contains("Backend Engineer", "Java", "Spring", "Platform");
+        assertThat(jobRepository.findById(jobId).orElseThrow().getEmbeddingUpdatedAt()).isNotNull();
+
+        putJson("/api/jobs/" + jobId, jobPayload("Senior Backend Engineer", "AI Platform"), token);
+
+        assertThat(jobRepository.findById(jobId).orElseThrow().getEmbeddingText())
+                .contains("Senior Backend Engineer", "AI Platform");
+    }
+
     private String registerAndGetToken(String fullName, String email, String role) throws Exception {
         HttpResponse<String> response = postJson(
                 "/api/auth/register",
@@ -147,11 +230,81 @@ class JobControllerTest {
     }
 
     private HttpResponse<String> get(String path) throws Exception {
+        return get(path, null);
+    }
+
+    private HttpResponse<String> get(String path, String token) throws Exception {
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + port + path))
+                .GET();
+
+        if (token != null) {
+            builder.header("Authorization", "Bearer " + token);
+        }
+
+        return httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+    }
+
+    private HttpResponse<String> putJson(String path, String body, String token) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:" + port + path))
-                .GET()
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + token)
+                .PUT(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private String jobPayload(String title, String department) {
+        return """
+                {
+                  "title": "%s",
+                  "company": "Smart Hire AI",
+                  "requiredSkills": ["Java", "Spring"],
+                  "minimumExperienceYears": 3,
+                  "educationLevel": "Bachelor",
+                  "location": "Casablanca, Morocco",
+                  "department": "%s",
+                  "employmentType": "Full-time",
+                  "workMode": "Hybrid",
+                  "salaryRange": "$45k - $65k",
+                  "applicationDeadline": "2026-07-15",
+                  "status": "Open"
+                }
+                """.formatted(title, department);
+    }
+
+    private Long extractLong(String body, String marker) {
+        int start = body.indexOf(marker) + marker.length();
+        int end = start;
+        while (end < body.length() && Character.isDigit(body.charAt(end))) {
+            end++;
+        }
+        return Long.parseLong(body.substring(start, end));
+    }
+
+    @TestConfiguration
+    static class EmbeddingTestConfiguration {
+
+        @Bean
+        @Primary
+        EmbeddingClient mockEmbeddingClient() {
+            return text -> List.of(0.1, 0.2, 0.3);
+        }
+
+        @Bean
+        @Primary
+        EmbeddingStore mockEmbeddingStore() {
+            return new EmbeddingStore() {
+                @Override
+                public void saveJobEmbedding(Long jobId, List<Double> embedding) {
+                }
+
+                @Override
+                public void saveCandidateEmbedding(Long candidateId, List<Double> embedding) {
+                }
+            };
+        }
     }
 }

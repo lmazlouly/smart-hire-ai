@@ -97,7 +97,7 @@
 
           <div class="space-y-3" data-testid="recruiter-jobs-list">
             @for (job of jobs(); track job.id) {
-              <div class="rounded-2xl border border-[#EBEBF0] bg-white px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.06)]" data-testid="recruiter-job-card">
+              <a [routerLink]="['/recruiter/jobs', job.id]" class="block rounded-2xl border border-[#EBEBF0] bg-white px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition hover:-translate-y-0.5 hover:border-[#C7C5F8] hover:shadow-[0_14px_34px_rgba(31,41,55,0.10)]" data-testid="recruiter-job-card">
                 <div class="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                   <div class="min-w-0">
                     <div class="font-display text-[14px] font-bold text-[#0D0D14]">{{ job.title }}</div>
@@ -119,7 +119,7 @@
                     }
                   </div>
                 </div>
-              </div>
+              </a>
             }
           </div>
         </section>

@@ -1,0 +1,141 @@
+<div class="min-h-screen bg-[#F8F9FB] px-4 py-8 sm:px-6 lg:px-10">
+  <div class="mx-auto max-w-[1180px]">
+    <a routerLink="/recruiter" class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-[#606078] hover:text-[#0D0D14]">
+      <span aria-hidden="true">←</span>
+      Back to recruiter dashboard
+    </a>
+
+    @if (isLoading()) {
+      <div class="h-72 animate-pulse rounded-[24px] bg-[#EBEBF0]"></div>
+    } @else if (job()) {
+      <div class="mb-6 overflow-hidden rounded-[28px] border border-[#E2E7E3] bg-white shadow-[0_16px_44px_rgba(31,41,55,0.08)]">
+        <div class="border-b border-[#E8ECE8] bg-[#FBFDFB] px-6 py-6 sm:px-8">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#087443]">Job workspace</div>
+              <h1 class="font-display mt-2 text-2xl font-extrabold text-[#0D0D14]">{{ job()?.title }}</h1>
+              <p class="mt-2 text-sm text-[#606078]">{{ job()?.company }} · {{ job()?.location || 'No location' }}</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="rounded-full border border-[#D8F3E3] bg-[#F0FDF4] px-3 py-1.5 text-xs font-bold text-[#15803D]">{{ job()?.status || 'Open' }}</span>
+              <button type="button" (click)="startEditing()" class="rounded-full bg-[#0F172A] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#18233C]">
+                Update job
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
+          <section class="p-6 sm:p-8">
+            @if (!isEditing()) {
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div class="rounded-2xl border border-[#E8ECE8] bg-[#FBFDFB] p-4">
+                  <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#748074]">Department</div>
+                  <div class="mt-2 font-display text-lg font-extrabold text-[#0D0D14]">{{ job()?.department || 'General' }}</div>
+                </div>
+                <div class="rounded-2xl border border-[#E8ECE8] bg-[#FBFDFB] p-4">
+                  <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#748074]">Experience</div>
+                  <div class="mt-2 font-display text-lg font-extrabold text-[#0D0D14]">{{ job()?.minimumExperienceYears || 0 }} years</div>
+                </div>
+                <div class="rounded-2xl border border-[#E8ECE8] bg-[#FBFDFB] p-4">
+                  <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#748074]">Work setup</div>
+                  <div class="mt-2 font-display text-lg font-extrabold text-[#0D0D14]">{{ job()?.employmentType || 'Full-time' }} · {{ job()?.workMode || 'Hybrid' }}</div>
+                </div>
+                <div class="rounded-2xl border border-[#E8ECE8] bg-[#FBFDFB] p-4">
+                  <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#748074]">Deadline</div>
+                  <div class="mt-2 font-display text-lg font-extrabold text-[#0D0D14]">{{ job()?.applicationDeadline || 'Open' }}</div>
+                </div>
+              </div>
+
+              <div class="mt-6">
+                <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#748074]">Required skills</div>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  @for (skill of job()?.requiredSkills || []; track skill) {
+                    <span class="rounded-full border border-[#DDE7FF] bg-[#F5F8FF] px-3 py-1.5 text-xs font-bold text-[#335CBE]">{{ skill }}</span>
+                  }
+                </div>
+              </div>
+
+              <div class="mt-6 rounded-2xl border border-[#E8ECE8] bg-white p-4">
+                <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#748074]">Salary & education</div>
+                <p class="mt-2 text-sm leading-7 text-[#3C3C50]">
+                  {{ job()?.salaryRange || 'Salary TBD' }} · {{ job()?.educationLevel || 'Education not specified' }}
+                </p>
+              </div>
+            } @else {
+              <form class="grid gap-4" (ngSubmit)="saveJob()">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <label class="text-sm font-semibold text-[#3C3C50]">Title
+                    <input class="mt-2 w-full rounded-2xl border border-[#DDDDE8] px-4 py-3 text-sm outline-none focus:border-accent" [(ngModel)]="form.title" name="title" required />
+                  </label>
+                  <label class="text-sm font-semibold text-[#3C3C50]">Company
+                    <input class="mt-2 w-full rounded-2xl border border-[#DDDDE8] px-4 py-3 text-sm outline-none focus:border-accent" [(ngModel)]="form.company" name="company" required />
+                  </label>
+                  <label class="text-sm font-semibold text-[#3C3C50]">Location
+                    <input class="mt-2 w-full rounded-2xl border border-[#DDDDE8] px-4 py-3 text-sm outline-none focus:border-accent" [(ngModel)]="form.location" name="location" />
+                  </label>
+                  <label class="text-sm font-semibold text-[#3C3C50]">Department
+                    <input class="mt-2 w-full rounded-2xl border border-[#DDDDE8] px-4 py-3 text-sm outline-none focus:border-accent" [(ngModel)]="form.department" name="department" />
+                  </label>
+                  <label class="text-sm font-semibold text-[#3C3C50]">Employment type
+                    <input class="mt-2 w-full rounded-2xl border border-[#DDDDE8] px-4 py-3 text-sm outline-none focus:border-accent" [(ngModel)]="form.employmentType" name="employmentType" />
+                  </label>
+                  <label class="text-sm font-semibold text-[#3C3C50]">Work mode
+                    <input class="mt-2 w-full rounded-2xl border border-[#DDDDE8] px-4 py-3 text-sm outline-none focus:border-accent" [(ngModel)]="form.workMode" name="workMode" />
+                  </label>
+                  <label class="text-sm font-semibold text-[#3C3C50]">Experience years
+                    <input type="number" min="0" class="mt-2 w-full rounded-2xl border border-[#DDDDE8] px-4 py-3 text-sm outline-none focus:border-accent" [(ngModel)]="form.minimumExperienceYears" name="minimumExperienceYears" />
+                  </label>
+                  <label class="text-sm font-semibold text-[#3C3C50]">Deadline
+                    <input type="date" class="mt-2 w-full rounded-2xl border border-[#DDDDE8] px-4 py-3 text-sm outline-none focus:border-accent" [(ngModel)]="form.applicationDeadline" name="applicationDeadline" />
+                  </label>
+                  <label class="text-sm font-semibold text-[#3C3C50]">Salary range
+                    <input class="mt-2 w-full rounded-2xl border border-[#DDDDE8] px-4 py-3 text-sm outline-none focus:border-accent" [(ngModel)]="form.salaryRange" name="salaryRange" />
+                  </label>
+                  <label class="text-sm font-semibold text-[#3C3C50]">Education
+                    <input class="mt-2 w-full rounded-2xl border border-[#DDDDE8] px-4 py-3 text-sm outline-none focus:border-accent" [(ngModel)]="form.educationLevel" name="educationLevel" />
+                  </label>
+                </div>
+                <label class="text-sm font-semibold text-[#3C3C50]">Required skills
+                  <input class="mt-2 w-full rounded-2xl border border-[#DDDDE8] px-4 py-3 text-sm outline-none focus:border-accent" [(ngModel)]="skillsInput" name="skillsInput" placeholder="Java, Spring Boot, PostgreSQL" />
+                </label>
+                <div class="flex flex-wrap gap-3">
+                  <button type="submit" class="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-white transition hover:bg-accent-strong disabled:opacity-60" [disabled]="isSaving()">
+                    {{ isSaving() ? 'Saving...' : 'Save changes' }}
+                  </button>
+                  <button type="button" (click)="cancelEditing()" class="rounded-full border border-[#DDDDE8] bg-white px-5 py-2.5 text-sm font-bold text-[#3C3C50] transition hover:bg-[#F7F7FB]">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            }
+
+            @if (error()) {
+              <div class="mt-4 rounded-2xl border border-[#F3D3D3] bg-[#FFF5F5] px-4 py-3 text-sm text-[#B42318]">{{ error() }}</div>
+            }
+            @if (success()) {
+              <div class="mt-4 rounded-2xl border border-[#D8F3E3] bg-[#F0FDF4] px-4 py-3 text-sm text-[#15803D]">{{ success() }}</div>
+            }
+          </section>
+
+          <aside class="border-t border-[#E8ECE8] bg-[#FBFDFB] p-6 sm:p-8 lg:border-l lg:border-t-0">
+            <div class="rounded-[22px] border border-dashed border-[#BFCFC5] bg-white p-5">
+              <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#087443]">Top candidates</div>
+              <h2 class="font-display mt-2 text-lg font-extrabold text-[#0D0D14]">Embedding ranking next</h2>
+              <p class="mt-3 text-sm leading-7 text-[#606078]">
+                This panel will show the strongest candidates once CV and job vectors are generated.
+              </p>
+              <div class="mt-5 space-y-2">
+                @for (item of ['Create job embedding', 'Compare candidate vectors', 'Rank top matches']; track item) {
+                  <div class="rounded-2xl border border-[#E8ECE8] bg-[#FBFDFB] px-4 py-3 text-sm font-semibold text-[#3C3C50]">{{ item }}</div>
+                }
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    } @else {
+      <div class="rounded-[24px] border border-[#EBEBF0] bg-white p-8 text-sm text-[#606078]">Job not found.</div>
+    }
+  </div>
+</div>

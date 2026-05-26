@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,5 +34,10 @@ public class CvController {
     @ResponseStatus(HttpStatus.CREATED)
     public CvVersion uploadCv(@RequestParam("file") MultipartFile file) throws IOException {
         return cvService.uploadCv(file);
+    }
+
+    @PostMapping("/{cvVersionId}/extract-skills")
+    public CvVersion extractSkills(@PathVariable Long cvVersionId) throws IOException {
+        return cvService.extractSkills(cvVersionId);
     }
 }

@@ -36,6 +36,8 @@ public class CvVersion {
     private Integer versionNumber;
     private boolean active;
     private LocalDateTime uploadedAt = LocalDateTime.now();
+    private String parseStatus = "PENDING";
+    private LocalDateTime parsedAt;
 
     public Long getId() {
         return id;
@@ -103,5 +105,21 @@ public class CvVersion {
 
     public void setUploadedAt(LocalDateTime uploadedAt) {
         this.uploadedAt = uploadedAt;
+    }
+
+    public String getParseStatus() {
+        return parseStatus;
+    }
+
+    public void setParseStatus(String parseStatus) {
+        this.parseStatus = parseStatus;
+    }
+
+    public LocalDateTime getParsedAt() {
+        return parsedAt;
+    }
+
+    public void setParsedAt(LocalDateTime parsedAt) {
+        this.parsedAt = parsedAt;
     }
 }

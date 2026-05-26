@@ -30,7 +30,7 @@ export class RecruiterDashboardPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.jobService.getJobs().subscribe({
+    this.jobService.getMyJobs().subscribe({
       next: (data) => {
         this.jobs.set(data);
         this.isLoadingJobs.set(false);

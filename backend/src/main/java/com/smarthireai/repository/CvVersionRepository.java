@@ -11,4 +11,6 @@ public interface CvVersionRepository extends JpaRepository<CvVersion, Long> {
     List<CvVersion> findByCandidateOrderByVersionNumberDesc(User candidate);
 
     Optional<CvVersion> findTopByCandidateOrderByVersionNumberDesc(User candidate);
+
+    Optional<CvVersion> findByIdAndCandidate(Long id, User candidate);
 }

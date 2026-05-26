@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +41,9 @@ public class Job {
     private String salaryRange;
     private LocalDate applicationDeadline;
     private String status;
+    @Column(columnDefinition = "text")
+    private String embeddingText;
+    private LocalDateTime embeddingUpdatedAt;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "job_required_skills", joinColumns = @JoinColumn(name = "job_id"))
@@ -185,5 +189,21 @@ public class Job {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getEmbeddingText() {
+        return embeddingText;
+    }
+
+    public void setEmbeddingText(String embeddingText) {
+        this.embeddingText = embeddingText;
+    }
+
+    public LocalDateTime getEmbeddingUpdatedAt() {
+        return embeddingUpdatedAt;
+    }
+
+    public void setEmbeddingUpdatedAt(LocalDateTime embeddingUpdatedAt) {
+        this.embeddingUpdatedAt = embeddingUpdatedAt;
     }
 }

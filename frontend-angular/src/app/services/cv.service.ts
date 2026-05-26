@@ -12,6 +12,8 @@ export interface CvVersion {
   versionNumber: number;
   active: boolean;
   uploadedAt: string;
+  parseStatus?: 'PENDING' | 'PARSING' | 'PARSED' | 'FAILED';
+  parsedAt?: string | null;
 }
 
 @Injectable({
@@ -29,5 +31,9 @@ export class CvService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<CvVersion>(this.apiUrl, formData);
+  }
+
+  extractSkills(cvVersionId: number): Observable<CvVersion> {
+    return this.http.post<CvVersion>(`${this.apiUrl}/${cvVersionId}/extract-skills`, {});
   }
 }

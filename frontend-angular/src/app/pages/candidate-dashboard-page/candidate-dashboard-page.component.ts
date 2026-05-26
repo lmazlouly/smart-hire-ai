@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { CandidateProfile, CandidateProfileService } from '../../services/candidate-profile.service';
 import { CvService, CvVersion } from '../../services/cv.service';
 import { Job, JobService } from '../../services/job.service';
 
@@ -15,10 +16,14 @@ export class CandidateDashboardPageComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly jobService = inject(JobService);
   private readonly cvService = inject(CvService);
+  private readonly candidateProfileService = inject(CandidateProfileService);
 
   jobs = signal<Job[]>([]);
   isLoadingJobs = signal(true);
   jobsError = signal('');
+  profile = signal<CandidateProfile | null>(null);
+  isLoadingProfile = signal(true);
+  isExtractingSkills = signal(false);
   cvVersions = signal<CvVersion[]>([]);
   isLoadingCvs = signal(true);
   isUploadingCv = signal(false);
@@ -57,6 +62,7 @@ export class CandidateDashboardPageComponent implements OnInit {
     });
 
     this.loadCvVersions();
+    this.loadProfile();
   }
 
   logout(): void {
@@ -93,12 +99,71 @@ export class CandidateDashboardPageComponent implements OnInit {
         ]);
         this.selectedCvFile.set(null);
         this.isUploadingCv.set(false);
+        this.loadProfile();
       },
       error: (err) => {
         this.cvError.set(err.error?.message ?? 'Failed to upload CV. Please try again.');
         this.isUploadingCv.set(false);
       }
     });
+  }
+
+  generateSkills(): void {
+    const cv = this.currentCv;
+
+    if (!cv) {
+      this.cvError.set('Upload a PDF CV before generating skills.');
+      return;
+    }
+
+    this.isExtractingSkills.set(true);
+    this.cvError.set('');
+
+    this.cvService.extractSkills(cv.id).subscribe({
+      next: (updatedCv) => {
+        this.cvVersions.update((versions) =>
+          versions.map((version) => version.id === updatedCv.id ? updatedCv : version)
+        );
+        this.isExtractingSkills.set(false);
+        this.loadProfile();
+      },
+      error: (err) => {
+        this.cvError.set(err.error?.message ?? 'Failed to generate skills from this CV.');
+        this.isExtractingSkills.set(false);
+      }
+    });
+  }
+
+  get skills(): string[] {
+    return this.profile()?.skills ?? [];
+  }
+
+  get hasSkills(): boolean {
+    return this.skills.length > 0;
+  }
+
+  get profileCompleteness(): number {
+    let score = 20;
+    if (this.currentCv) {
+      score += 30;
+    }
+    if (this.hasSkills) {
+      score += 35;
+    }
+    if (this.profile()?.experienceYears !== null && this.profile()?.experienceYears !== undefined) {
+      score += 15;
+    }
+    return Math.min(score, 100);
+  }
+
+  getSkillTone(index: number): string {
+    const tones = [
+      'border-[#CDEFE2] bg-[#F0FDF7] text-[#087443]',
+      'border-[#DDE7FF] bg-[#F5F8FF] text-[#335CBE]',
+      'border-[#F7DFC2] bg-[#FFF8ED] text-[#A05A00]',
+      'border-[#F2D5EA] bg-[#FFF4FB] text-[#9B2C79]'
+    ];
+    return tones[index % tones.length];
   }
 
   formatFileSize(size: number): string {
@@ -118,6 +183,18 @@ export class CandidateDashboardPageComponent implements OnInit {
       error: () => {
         this.cvError.set('Failed to load CV versions.');
         this.isLoadingCvs.set(false);
+      }
+    });
+  }
+
+  private loadProfile(): void {
+    this.candidateProfileService.getMyProfile().subscribe({
+      next: (profile) => {
+        this.profile.set(profile);
+        this.isLoadingProfile.set(false);
+      },
+      error: () => {
+        this.isLoadingProfile.set(false);
       }
     });
   }
