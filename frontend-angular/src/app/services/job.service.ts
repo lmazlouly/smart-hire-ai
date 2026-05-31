@@ -34,6 +34,20 @@ export interface CreateJobPayload {
   status: string;
 }
 
+export interface TopCandidate {
+  candidateId: number;
+  fullName: string;
+  email: string;
+  semanticScore: number;
+  matchPercentage: number;
+  skills: string[];
+  sharedSkills: string[];
+  missingSkills: string[];
+  experienceYears: number;
+  educationLevel: string;
+  explanation: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -59,5 +73,11 @@ export class JobService {
 
   updateJob(id: number, payload: CreateJobPayload): Observable<Job> {
     return this.http.put<Job>(`${this.apiUrl}/${id}`, payload);
+  }
+
+  getTopCandidates(id: number, limit = 10): Observable<TopCandidate[]> {
+    return this.http.get<TopCandidate[]>(`${this.apiUrl}/${id}/top-candidates`, {
+      params: { limit }
+    });
   }
 }

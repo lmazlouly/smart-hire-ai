@@ -38,6 +38,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**", "/api/health", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/jobs/my").hasRole("RECRUITER")
+                        .requestMatchers(HttpMethod.GET, "/api/jobs/*/top-candidates").hasRole("RECRUITER")
                         .requestMatchers(HttpMethod.GET, "/api/jobs", "/api/jobs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/candidates/me", "/api/candidates/me/**").hasRole("CANDIDATE")
                         .requestMatchers(HttpMethod.GET, "/api/candidates/**").hasRole("RECRUITER")

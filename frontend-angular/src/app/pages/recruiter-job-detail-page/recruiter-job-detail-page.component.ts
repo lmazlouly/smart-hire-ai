@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { CreateJobPayload, Job, JobService } from '../../services/job.service';
+import { CreateJobPayload, Job, JobService, TopCandidate } from '../../services/job.service';
 
 @Component({
   selector: 'app-recruiter-job-detail-page',
@@ -20,6 +20,9 @@ export class RecruiterJobDetailPageComponent implements OnInit {
   isSaving = signal(false);
   error = signal('');
   success = signal('');
+  topCandidates = signal<TopCandidate[]>([]);
+  isLoadingTopCandidates = signal(false);
+  topCandidatesError = signal('');
   skillsInput = '';
 
   form: CreateJobPayload = this.emptyForm();
@@ -85,6 +88,7 @@ export class RecruiterJobDetailPageComponent implements OnInit {
         this.isSaving.set(false);
         this.isEditing.set(false);
         this.success.set('Job updated.');
+        this.loadTopCandidates(updatedJob.id);
       },
       error: (err) => {
         this.error.set(err.error?.message ?? 'Failed to update this job.');
@@ -100,10 +104,33 @@ export class RecruiterJobDetailPageComponent implements OnInit {
       next: (job) => {
         this.job.set(job);
         this.isLoading.set(false);
+        this.loadTopCandidates(job.id);
       },
       error: () => {
         this.error.set('Failed to load this job.');
         this.isLoading.set(false);
+      }
+    });
+  }
+
+  refreshTopCandidates(): void {
+    const job = this.job();
+    if (!job) return;
+    this.loadTopCandidates(job.id);
+  }
+
+  private loadTopCandidates(jobId: number): void {
+    this.isLoadingTopCandidates.set(true);
+    this.topCandidatesError.set('');
+
+    this.jobService.getTopCandidates(jobId).subscribe({
+      next: (candidates) => {
+        this.topCandidates.set(candidates);
+        this.isLoadingTopCandidates.set(false);
+      },
+      error: (err) => {
+        this.topCandidatesError.set(err.error?.message ?? 'Failed to load top candidates.');
+        this.isLoadingTopCandidates.set(false);
       }
     });
   }

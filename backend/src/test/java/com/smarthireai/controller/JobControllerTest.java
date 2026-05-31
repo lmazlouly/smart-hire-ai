@@ -4,8 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.smarthireai.repository.JobRepository;
 import com.smarthireai.repository.UserRepository;
+import com.smarthireai.entity.Candidate;
+import com.smarthireai.entity.User;
+import com.smarthireai.repository.CandidateRepository;
+import com.smarthireai.service.CandidateRankingStore;
 import com.smarthireai.service.EmbeddingClient;
 import com.smarthireai.service.EmbeddingStore;
+import java.util.ArrayList;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -31,12 +36,20 @@ class JobControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private CandidateRepository candidateRepository;
+
+    @Autowired
+    private TestCandidateRankingStore candidateRankingStore;
+
     @LocalServerPort
     private int port;
 
     @AfterEach
     void tearDown() {
+        candidateRankingStore.clear();
         jobRepository.deleteAll();
+        candidateRepository.deleteAll();
         userRepository.deleteAll();
     }
 
@@ -195,6 +208,73 @@ class JobControllerTest {
                 .contains("Senior Backend Engineer", "AI Platform");
     }
 
+    @Test
+    void recruiterCanRankTopCandidatesForOwnedJobUsingSemanticEmbeddingScores() throws Exception {
+        String recruiterToken = registerAndGetToken(
+                "Ranking Recruiter",
+                "ranking-recruiter@example.com",
+                "RECRUITER"
+        );
+        String otherRecruiterToken = registerAndGetToken(
+                "Other Ranking Recruiter",
+                "other-ranking-recruiter@example.com",
+                "RECRUITER"
+        );
+        registerAndGetToken("React Candidate", "react-candidate@example.com", "CANDIDATE");
+        registerAndGetToken("Java Candidate", "java-candidate@example.com", "CANDIDATE");
+
+        Candidate reactCandidate = createCandidateProfile(
+                "react-candidate@example.com",
+                List.of("React", "TypeScript", "Frontend"),
+                3,
+                "Bachelor"
+        );
+        Candidate javaCandidate = createCandidateProfile(
+                "java-candidate@example.com",
+                List.of("Java", "Spring"),
+                4,
+                "Bachelor"
+        );
+
+        HttpResponse<String> created = postJson(
+                "/api/jobs",
+                """
+                        {
+                          "title": "Next.js Developer",
+                          "company": "Smart Hire AI",
+                          "requiredSkills": ["Next.js", "TypeScript"],
+                          "minimumExperienceYears": 2,
+                          "educationLevel": "Bachelor",
+                          "location": "Remote",
+                          "department": "Product",
+                          "employmentType": "Full-time",
+                          "workMode": "Remote",
+                          "salaryRange": "$45k - $65k",
+                          "applicationDeadline": "2026-07-15",
+                          "status": "Open"
+                        }
+                        """,
+                recruiterToken
+        );
+        Long jobId = extractLong(created.body(), "\"id\":");
+        candidateRankingStore.setScores(List.of(
+                new CandidateRankingStore.CandidateMatchScore(reactCandidate.getId(), 0.86),
+                new CandidateRankingStore.CandidateMatchScore(javaCandidate.getId(), 0.24)
+        ));
+
+        HttpResponse<String> forbidden = get("/api/jobs/" + jobId + "/top-candidates", otherRecruiterToken);
+        HttpResponse<String> response = get("/api/jobs/" + jobId + "/top-candidates?limit=5", recruiterToken);
+
+        assertThat(forbidden.statusCode()).isNotEqualTo(200);
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).contains("\"fullName\":\"React Candidate\"");
+        assertThat(response.body()).contains("\"semanticScore\":86.0");
+        assertThat(response.body()).contains("\"sharedSkills\":[\"TypeScript\"]");
+        assertThat(response.body()).contains("\"missingSkills\":[\"Next.js\"]");
+        assertThat(response.body()).contains("semantic match");
+        assertThat(response.body().indexOf("React Candidate")).isLessThan(response.body().indexOf("Java Candidate"));
+    }
+
     private String registerAndGetToken(String fullName, String email, String role) throws Exception {
         HttpResponse<String> response = postJson(
                 "/api/auth/register",
@@ -214,6 +294,13 @@ class JobControllerTest {
         int tokenStart = responseBody.indexOf("\"token\":\"") + 9;
         int tokenEnd = responseBody.indexOf('"', tokenStart);
         return responseBody.substring(tokenStart, tokenEnd);
+    }
+
+    private Candidate createCandidateProfile(String email, List<String> skills, Integer experienceYears, String educationLevel) {
+        User user = userRepository.findByEmail(email).orElseThrow();
+        Candidate candidate = new Candidate(user, new ArrayList<>(skills), experienceYears, educationLevel);
+        candidate.setEmbeddingText("Skills: " + String.join(", ", skills));
+        return candidateRepository.save(candidate);
     }
 
     private HttpResponse<String> postJson(String path, String body, String token) throws Exception {
@@ -305,6 +392,29 @@ class JobControllerTest {
                 public void saveCandidateEmbedding(Long candidateId, List<Double> embedding) {
                 }
             };
+        }
+
+        @Bean
+        @Primary
+        TestCandidateRankingStore testCandidateRankingStore() {
+            return new TestCandidateRankingStore();
+        }
+    }
+
+    static class TestCandidateRankingStore implements CandidateRankingStore {
+        private List<CandidateMatchScore> scores = new ArrayList<>();
+
+        @Override
+        public List<CandidateMatchScore> findTopCandidatesForJob(Long jobId, int limit) {
+            return scores.stream().limit(limit).toList();
+        }
+
+        void setScores(List<CandidateMatchScore> scores) {
+            this.scores = new ArrayList<>(scores);
+        }
+
+        void clear() {
+            scores.clear();
         }
     }
 }

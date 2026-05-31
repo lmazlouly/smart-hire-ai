@@ -1,6 +1,7 @@
 package com.smarthireai.controller;
 
 import com.smarthireai.dto.CreateJobRequest;
+import com.smarthireai.dto.TopCandidateResponse;
 import com.smarthireai.entity.Job;
 import com.smarthireai.service.JobService;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,6 +39,14 @@ public class JobController {
     @GetMapping("/{jobId}")
     public Job getMyJob(@PathVariable Long jobId) {
         return jobService.getMyJob(jobId);
+    }
+
+    @GetMapping("/{jobId}/top-candidates")
+    public List<TopCandidateResponse> getTopCandidates(
+            @PathVariable Long jobId,
+            @RequestParam(required = false) Integer limit
+    ) {
+        return jobService.getTopCandidates(jobId, limit);
     }
 
     @PostMapping

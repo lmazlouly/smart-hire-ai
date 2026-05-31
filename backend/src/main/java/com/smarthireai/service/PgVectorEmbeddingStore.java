@@ -8,7 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PgVectorEmbeddingStore implements EmbeddingStore {
+public class PgVectorEmbeddingStore implements EmbeddingStore, CandidateRankingStore {
 
     private final JdbcTemplate jdbcTemplate;
     private final String datasourceUrl;
@@ -48,6 +48,33 @@ public class PgVectorEmbeddingStore implements EmbeddingStore {
         }
 
         jdbcTemplate.update("UPDATE candidates SET embedding = ?::vector WHERE id = ?", toVectorLiteral(embedding), candidateId);
+    }
+
+    @Override
+    public List<CandidateMatchScore> findTopCandidatesForJob(Long jobId, int limit) {
+        if (!isPostgres() || jobId == null) {
+            return List.of();
+        }
+
+        int safeLimit = Math.max(1, Math.min(limit, 50));
+        return jdbcTemplate.query(
+                """
+                        SELECT c.id AS candidate_id,
+                               1 - (c.embedding <=> j.embedding) AS score
+                        FROM candidates c
+                        JOIN jobs j ON j.id = ?
+                        WHERE c.embedding IS NOT NULL
+                          AND j.embedding IS NOT NULL
+                        ORDER BY c.embedding <=> j.embedding
+                        LIMIT ?
+                        """,
+                (rs, rowNum) -> new CandidateMatchScore(
+                        rs.getLong("candidate_id"),
+                        rs.getDouble("score")
+                ),
+                jobId,
+                safeLimit
+        );
     }
 
     private boolean isPostgres() {

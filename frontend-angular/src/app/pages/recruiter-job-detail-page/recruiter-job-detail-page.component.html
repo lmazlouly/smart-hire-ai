@@ -119,17 +119,92 @@
           </section>
 
           <aside class="border-t border-[#E8ECE8] bg-[#FBFDFB] p-6 sm:p-8 lg:border-l lg:border-t-0">
-            <div class="rounded-[22px] border border-dashed border-[#BFCFC5] bg-white p-5">
-              <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#087443]">Top candidates</div>
-              <h2 class="font-display mt-2 text-lg font-extrabold text-[#0D0D14]">Embedding ranking next</h2>
-              <p class="mt-3 text-sm leading-7 text-[#606078]">
-                This panel will show the strongest candidates once CV and job vectors are generated.
-              </p>
-              <div class="mt-5 space-y-2">
-                @for (item of ['Create job embedding', 'Compare candidate vectors', 'Rank top matches']; track item) {
-                  <div class="rounded-2xl border border-[#E8ECE8] bg-[#FBFDFB] px-4 py-3 text-sm font-semibold text-[#3C3C50]">{{ item }}</div>
-                }
+            <div class="rounded-[22px] border border-[#DDE7DF] bg-white p-5 shadow-[0_10px_30px_rgba(31,41,55,0.06)]">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#087443]">Top candidates</div>
+                  <h2 class="font-display mt-2 text-lg font-extrabold text-[#0D0D14]">Embedding ranking</h2>
+                </div>
+                <button type="button" (click)="refreshTopCandidates()" class="rounded-full border border-[#DDE7DF] bg-[#FBFDFB] px-3 py-1.5 text-xs font-bold text-[#315342] transition hover:bg-[#EEF8F1]">
+                  Refresh
+                </button>
               </div>
+
+              <p class="mt-3 text-sm leading-6 text-[#606078]">
+                Candidates are ordered by vector similarity, then explained with exact skill matches and missing requirements.
+              </p>
+
+              @if (isLoadingTopCandidates()) {
+                <div class="mt-5 space-y-3">
+                  @for (item of [1, 2, 3]; track item) {
+                    <div class="h-28 animate-pulse rounded-2xl bg-[#EEF1F0]"></div>
+                  }
+                </div>
+              } @else if (topCandidatesError()) {
+                <div class="mt-5 rounded-2xl border border-[#F3D3D3] bg-[#FFF5F5] px-4 py-3 text-sm text-[#B42318]">
+                  {{ topCandidatesError() }}
+                </div>
+              } @else if (topCandidates().length === 0) {
+                <div class="mt-5 rounded-2xl border border-dashed border-[#BFCFC5] bg-[#FBFDFB] p-4">
+                  <div class="font-display text-base font-extrabold text-[#0D0D14]">No ranked candidates yet</div>
+                  <p class="mt-2 text-sm leading-6 text-[#606078]">
+                    Upload and parse candidate CVs, then make sure job and candidate embeddings are generated.
+                  </p>
+                </div>
+              } @else {
+                <div class="mt-5 space-y-3">
+                  @for (candidate of topCandidates(); track candidate.candidateId; let rank = $index) {
+                    <article class="rounded-2xl border border-[#E3E9E5] bg-[#FBFDFB] p-4">
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                          <div class="text-[10px] font-bold uppercase tracking-[0.12em] text-[#748074]">Rank #{{ rank + 1 }}</div>
+                          <h3 class="mt-1 truncate font-display text-base font-extrabold text-[#0D0D14]">{{ candidate.fullName }}</h3>
+                          <p class="mt-1 truncate text-xs text-[#606078]">{{ candidate.email }}</p>
+                        </div>
+                        <div class="shrink-0 rounded-2xl bg-[#087443] px-3 py-2 text-center text-white">
+                          <div class="font-display text-lg font-extrabold leading-none">{{ candidate.matchPercentage }}%</div>
+                          <div class="mt-1 text-[9px] font-bold uppercase tracking-[0.1em] text-[#D7FBE5]">match</div>
+                        </div>
+                      </div>
+
+                      <p class="mt-3 text-xs leading-5 text-[#3C3C50]">{{ candidate.explanation }}</p>
+
+                      <div class="mt-3 grid gap-2 text-xs sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                        <div class="rounded-xl border border-[#E8ECE8] bg-white px-3 py-2">
+                          <div class="font-bold text-[#748074]">Experience</div>
+                          <div class="mt-1 font-semibold text-[#0D0D14]">{{ candidate.experienceYears || 0 }} years</div>
+                        </div>
+                        <div class="rounded-xl border border-[#E8ECE8] bg-white px-3 py-2">
+                          <div class="font-bold text-[#748074]">Education</div>
+                          <div class="mt-1 font-semibold text-[#0D0D14]">{{ candidate.educationLevel || 'Not set' }}</div>
+                        </div>
+                      </div>
+
+                      @if (candidate.sharedSkills.length > 0) {
+                        <div class="mt-3">
+                          <div class="text-[10px] font-bold uppercase tracking-[0.12em] text-[#087443]">Matched skills</div>
+                          <div class="mt-2 flex flex-wrap gap-1.5">
+                            @for (skill of candidate.sharedSkills; track skill) {
+                              <span class="rounded-full border border-[#BBF7D0] bg-[#F0FDF4] px-2.5 py-1 text-[11px] font-bold text-[#15803D]">{{ skill }}</span>
+                            }
+                          </div>
+                        </div>
+                      }
+
+                      @if (candidate.missingSkills.length > 0) {
+                        <div class="mt-3">
+                          <div class="text-[10px] font-bold uppercase tracking-[0.12em] text-[#9A3412]">Missing skills</div>
+                          <div class="mt-2 flex flex-wrap gap-1.5">
+                            @for (skill of candidate.missingSkills; track skill) {
+                              <span class="rounded-full border border-[#FED7AA] bg-[#FFF7ED] px-2.5 py-1 text-[11px] font-bold text-[#C2410C]">{{ skill }}</span>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </article>
+                  }
+                </div>
+              }
             </div>
           </aside>
         </div>
