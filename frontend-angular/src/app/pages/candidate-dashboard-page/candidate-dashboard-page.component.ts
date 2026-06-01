@@ -31,6 +31,11 @@ export class CandidateDashboardPageComponent implements OnInit {
   cvError = signal('');
 
   readonly recommendations = ['Improve Docker fundamentals', 'Complete Kubernetes basics', 'Review SQL optimization'];
+  readonly extractionSteps = [
+    { title: 'CV uploaded', detail: 'The latest version is stored and ready for parsing.' },
+    { title: 'Parsing with AI', detail: 'The service reads text and extracts profile signals.' },
+    { title: 'Profile extracted', detail: 'Skills, education, and experience are saved for matching.' }
+  ];
 
   get fullName(): string {
     return this.authService.getFullName();
@@ -142,6 +147,94 @@ export class CandidateDashboardPageComponent implements OnInit {
     return this.skills.length > 0;
   }
 
+  get featuredSkills(): string[] {
+    return this.skills.slice(0, 8);
+  }
+
+  get hiddenSkillsCount(): number {
+    return Math.max(0, this.skills.length - this.featuredSkills.length);
+  }
+
+  get totalSkillsLabel(): string {
+    return `${this.skills.length}`;
+  }
+
+  get extractionProgress(): number {
+    if (this.isExtractingSkills()) {
+      return 68;
+    }
+
+    const status = this.currentCv?.parseStatus;
+    if (!this.currentCv) {
+      return 0;
+    }
+    if (status === 'PARSED') {
+      return this.hasSkills ? 100 : 84;
+    }
+    if (status === 'PARSING') {
+      return 68;
+    }
+    if (status === 'FAILED') {
+      return 28;
+    }
+    return 36;
+  }
+
+  get extractionStateLabel(): string {
+    if (this.isExtractingSkills()) {
+      return 'Parsing with AI';
+    }
+
+    const status = this.currentCv?.parseStatus;
+    if (!this.currentCv) {
+      return 'Waiting for CV';
+    }
+    if (status === 'PARSED' && this.hasSkills) {
+      return 'Ready for matching';
+    }
+    if (status === 'PARSED') {
+      return 'Parsed, no skills yet';
+    }
+    if (status === 'FAILED') {
+      return 'Needs retry';
+    }
+    if (status === 'PARSING') {
+      return 'Parsing with AI';
+    }
+    return 'Uploaded, pending parse';
+  }
+
+  get extractionStateTone(): string {
+    const status = this.currentCv?.parseStatus;
+    if (status === 'FAILED') {
+      return 'border-[#F3D3D3] bg-[#FFF5F5] text-[#B42318]';
+    }
+    if (this.hasSkills || status === 'PARSED') {
+      return 'border-[#CDEFE2] bg-[#F0FDF4] text-[#15803D]';
+    }
+    return 'border-[#DDE7FF] bg-[#F5F8FF] text-[#335CBE]';
+  }
+
+  get professionalSummary(): string {
+    const experience = this.profile()?.experienceYears;
+    const education = this.profile()?.educationLevel;
+    const skills = this.featuredSkills.slice(0, 5).join(', ');
+
+    if (!this.currentCv) {
+      return 'Upload a CV to let Smart Hire AI extract your skills and build a profile recruiters can match against jobs.';
+    }
+
+    if (!this.hasSkills) {
+      return 'Your CV is uploaded. Generate skills to turn this document into structured profile data for recommendations and matching.';
+    }
+
+    return [
+      experience !== null && experience !== undefined ? `${experience} years of experience` : 'Experience extracted from CV',
+      education ? `${education} education level` : 'education details available after parsing',
+      skills ? `with detected skills in ${skills}.` : 'with extracted technical skills.'
+    ].join(', ');
+  }
+
   get profileCompleteness(): number {
     let score = 20;
     if (this.currentCv) {
@@ -164,6 +257,20 @@ export class CandidateDashboardPageComponent implements OnInit {
       'border-[#F2D5EA] bg-[#FFF4FB] text-[#9B2C79]'
     ];
     return tones[index % tones.length];
+  }
+
+  getFlowStepTone(index: number): string {
+    const complete = index === 0
+      ? !!this.currentCv
+      : index === 1
+        ? !!this.currentCv && this.extractionProgress >= 68
+        : this.hasSkills;
+
+    if (complete) {
+      return 'border-[#BFE8D3] bg-[#F0FDF4] text-[#087443]';
+    }
+
+    return 'border-[#DDE7FF] bg-[#F7F8FF] text-[#335CBE]';
   }
 
   formatFileSize(size: number): string {

@@ -1,238 +1,249 @@
 <div class="min-h-screen bg-[#F8F9FB] px-4 py-10 sm:px-6 lg:px-10">
-  <div class="mx-auto max-w-[1240px]">
-
-    <!-- Top bar -->
-    <div class="mb-8 flex flex-col gap-4 rounded-[24px] border border-[#EBEBF0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)] sm:flex-row sm:items-center sm:justify-between">
+  <div class="mx-auto max-w-[1320px]">
+    <div class="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-accent">Candidate workspace</div>
-        <h1 class="font-display mt-2 text-[1.75rem] font-extrabold tracking-[-0.03em] text-[#0D0D14]">
-          Welcome back, {{ fullName || 'Candidate' }}
-        </h1>
+        <h1 class="font-display mt-2 text-[2rem] font-extrabold text-[#0D0D14]">AI CV Skill Extraction</h1>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-[#606078]">Smart Hire AI turns your latest CV into structured skills, experience, and education data for job matching.</p>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
         <a routerLink="/settings" class="rounded-full border border-[#DDDDE8] bg-white px-4 py-2 text-[13.5px] font-medium text-[#3C3C50] transition hover:bg-[#F7F7FB]">Settings</a>
         <button type="button" (click)="logout()" class="rounded-full border border-[#DDDDE8] bg-white px-4 py-2 text-[13.5px] font-medium text-[#3C3C50] transition hover:bg-[#F7F7FB]">Logout</button>
+        <button type="button" (click)="generateSkills()"
+          class="rounded-full bg-accent px-5 py-2 text-[13.5px] font-bold text-white transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-60"
+          [disabled]="!currentCv || isExtractingSkills()">
+          {{ isExtractingSkills() ? 'Generating...' : (hasSkills ? 'Regenerate skills' : 'Generate skills') }}
+        </button>
       </div>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-[0.75fr_1.25fr]">
-
-      <!-- Left column: Profile + CV status -->
-      <div class="flex flex-col gap-6">
-
-        <!-- Profile summary -->
-        <div class="rounded-[24px] border border-[#EBEBF0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-          <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-accent">Profile</div>
-          <div class="mt-4 flex items-center gap-4">
-            <div class="flex h-14 w-14 items-center justify-center rounded-full bg-[#EEF2FF] font-display text-xl font-bold text-accent">
+    <div class="grid gap-6 lg:grid-cols-[0.42fr_0.58fr]">
+      <aside class="flex flex-col gap-6">
+        <section class="rounded-[26px] border border-[#EBEBF0] bg-white p-6 shadow-[0_12px_34px_rgba(31,41,55,0.07)]">
+          <div class="flex items-center gap-4">
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EEF2FF] font-display text-xl font-extrabold text-accent">
               {{ getInitials() }}
             </div>
-            <div>
-              <div class="font-display text-base font-bold text-[#0D0D14]">{{ fullName }}</div>
-              <div class="mt-1 rounded-full border border-[#E0DFFF] bg-[#F5F3FF] px-2 py-0.5 text-[10.5px] font-medium text-accent inline-block">Candidate</div>
+            <div class="min-w-0">
+              <div class="truncate font-display text-lg font-extrabold text-[#0D0D14]">{{ fullName || 'Candidate' }}</div>
+              <div class="mt-1 inline-flex rounded-full border border-[#E0DFFF] bg-[#F5F3FF] px-2.5 py-1 text-[10.5px] font-bold text-accent">Candidate profile</div>
             </div>
           </div>
-        </div>
 
-        <!-- CV status -->
-        <div class="rounded-[24px] border border-[#EBEBF0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-          <div class="flex items-center justify-between gap-3">
-            <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-accent">CV Versions</div>
-            @if (currentCv) {
-              <span class="rounded-full border border-[#D8F3E3] bg-[#F0FDF4] px-2.5 py-1 text-[10.5px] font-bold text-[#15803D]">Current v{{ currentCv.versionNumber }}</span>
-            }
-          </div>
-
-          @if (isLoadingCvs()) {
-            <div class="mt-4 h-24 animate-pulse rounded-2xl bg-[#EBEBF0]"></div>
-          }
-
-          @if (!isLoadingCvs()) {
-            <div class="mt-4 rounded-2xl border border-dashed border-[#C7C5F8] bg-[#FBFAFF] p-4">
-              <label class="block text-sm font-semibold text-[#0D0D14]" for="cv-file">Upload CV</label>
-              <p class="mt-1 text-xs leading-5 text-[#606078]">PDF only for now. Each upload becomes a new version and the parser tries to extract skills automatically.</p>
-              <input id="cv-file" type="file" accept=".pdf,application/pdf"
-                class="mt-3 block w-full text-xs text-[#606078] file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white"
-                (change)="onCvSelected($event)" />
-              @if (selectedCvFile()) {
-                <div class="mt-3 rounded-xl bg-white px-3 py-2 text-xs text-[#606078]">
-                  Selected: <span class="font-semibold text-[#0D0D14]">{{ selectedCvFile()?.name }}</span>
-                </div>
-              }
-              <button type="button" (click)="uploadSelectedCv()"
-                class="mt-3 w-full rounded-full bg-accent px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-70"
-                [disabled]="isUploadingCv()">
-                {{ isUploadingCv() ? 'Uploading...' : 'Upload new version' }}
-              </button>
+          <div class="mt-5 rounded-2xl border border-[#E8ECE8] bg-[#FBFDFB] p-4">
+            <div class="mb-2 flex items-center justify-between gap-3">
+              <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#748074]">Profile readiness</div>
+              <div class="text-sm font-extrabold text-[#087443]">{{ profileCompleteness }}%</div>
             </div>
-          }
-
-          @if (cvError()) {
-            <div class="mt-3 rounded-2xl border border-[#F3D3D3] bg-[#FFF5F5] px-4 py-3 text-sm text-[#B42318]">{{ cvError() }}</div>
-          }
-
-          @if (!isLoadingCvs() && !currentCv) {
-            <div class="mt-4 text-sm text-[#606078]">
-              <p class="mb-2">No CV uploaded yet.</p>
-              <p class="text-xs text-[#9898A8]">Upload your first CV now. AI parsing will be connected later.</p>
-            </div>
-          }
-
-          @if (!isLoadingCvs() && currentCv) {
-            <div class="mt-4 rounded-2xl border border-[#EBEBF0] bg-[#FAFAFA] p-4">
-              <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#9898A8]">Current CV</div>
-              <a [href]="currentCv.fileUrl" target="_blank" rel="noreferrer" class="mt-2 block text-sm font-bold text-[#0D0D14] hover:text-accent">
-                {{ currentCv.fileName }}
-              </a>
-              <div class="mt-1 text-xs text-[#606078]">{{ formatFileSize(currentCv.fileSize) }} · {{ currentCv.fileType || 'Document' }}</div>
-              <div class="mt-3 flex flex-wrap items-center gap-2">
-                <span class="rounded-full border px-2.5 py-1 text-[10.5px] font-bold"
-                  [ngClass]="{
-                    'border-[#CDEFE2] bg-[#F0FDF4] text-[#15803D]': currentCv.parseStatus === 'PARSED',
-                    'border-[#F7DFC2] bg-[#FFF8ED] text-[#A05A00]': currentCv.parseStatus === 'PENDING' || currentCv.parseStatus === 'PARSING',
-                    'border-[#F3D3D3] bg-[#FFF5F5] text-[#B42318]': currentCv.parseStatus === 'FAILED'
-                  }">
-                  {{ currentCv.parseStatus || 'PENDING' }}
-                </span>
-                @if (currentCv.parsedAt) {
-                  <span class="text-[11px] text-[#9898A8]">Parsed {{ currentCv.parsedAt | date:'short' }}</span>
-                }
-              </div>
-            </div>
-          }
-
-          @if (!isLoadingCvs() && cvVersions().length > 0) {
-            <div class="mt-4">
-              <div class="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[#9898A8]">History</div>
-              <div class="space-y-2">
-                @for (cv of cvVersions(); track cv.id) {
-                  <a [href]="cv.fileUrl" target="_blank" rel="noreferrer" class="flex items-center justify-between gap-3 rounded-2xl border border-[#EBEBF0] bg-white px-3 py-2.5 transition hover:border-[#C7C5F8]">
-                    <div class="min-w-0">
-                      <div class="truncate text-xs font-semibold text-[#0D0D14]">v{{ cv.versionNumber }} · {{ cv.fileName }}</div>
-                      <div class="mt-0.5 text-[11px] text-[#9898A8]">{{ cv.uploadedAt | date:'mediumDate' }} · {{ formatFileSize(cv.fileSize) }}</div>
-                    </div>
-                    @if (cv.active) {
-                      <span class="shrink-0 rounded-full bg-[#F0FDF4] px-2 py-0.5 text-[10px] font-bold text-[#15803D]">Active</span>
-                    }
-                  </a>
-                }
-              </div>
-            </div>
-          }
-        </div>
-
-        <!-- Skills profile -->
-        <div class="overflow-hidden rounded-[24px] border border-[#DDE6DF] bg-white shadow-[0_10px_28px_rgba(31,41,55,0.08)]">
-          <div class="border-b border-[#E9EEE9] bg-[#FBFDFB] px-6 py-5">
-            <div class="flex items-start justify-between gap-4">
-              <div>
-                <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#087443]">Skill profile</div>
-                <h2 class="font-display mt-2 text-lg font-extrabold text-[#0D0D14]">Extracted from your CV</h2>
-              </div>
-              <div class="rounded-full border border-[#DDE7FF] bg-white px-3 py-1.5 text-xs font-bold text-[#335CBE]">
-                {{ profileCompleteness }}% ready
-              </div>
-            </div>
-
-            <div class="mt-4 h-2 overflow-hidden rounded-full bg-[#E7ECE8]">
+            <div class="h-2 overflow-hidden rounded-full bg-[#E7ECE8]">
               <div class="h-full rounded-full bg-[#16A36A] transition-all" [style.width.%]="profileCompleteness"></div>
             </div>
           </div>
+        </section>
 
-          <div class="p-6">
-            @if (isLoadingProfile()) {
-              <div class="space-y-3">
-                <div class="h-8 animate-pulse rounded-full bg-[#EBEBF0]"></div>
-                <div class="h-8 w-4/5 animate-pulse rounded-full bg-[#EBEBF0]"></div>
-              </div>
-            } @else {
-              <div class="grid gap-3 sm:grid-cols-2">
-                <div class="rounded-2xl border border-[#E9EEE9] bg-[#FBFDFB] p-4">
-                  <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#748074]">Experience</div>
-                  <div class="mt-2 font-display text-xl font-extrabold text-[#0D0D14]">
-                    {{ profile()?.experienceYears ?? 0 }}y
-                  </div>
-                </div>
-                <div class="rounded-2xl border border-[#E9EEE9] bg-[#FBFDFB] p-4">
-                  <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#748074]">Education</div>
-                  <div class="mt-2 truncate font-display text-xl font-extrabold text-[#0D0D14]">
-                    {{ profile()?.educationLevel || 'Unknown' }}
+        <section class="rounded-[26px] border border-[#EBEBF0] bg-white p-6 shadow-[0_12px_34px_rgba(31,41,55,0.07)]">
+          <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-accent">Extraction flow</div>
+          <div class="mt-5 space-y-4">
+            @for (step of extractionSteps; track step.title; let stepIndex = $index) {
+              <div class="relative rounded-2xl border p-4" [ngClass]="getFlowStepTone(stepIndex)">
+                <div class="flex items-start gap-3">
+                  <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-sm font-black shadow-[0_2px_8px_rgba(31,41,55,0.08)]">{{ stepIndex + 1 }}</div>
+                  <div>
+                    <div class="text-sm font-extrabold">{{ step.title }}</div>
+                    <p class="mt-1 text-xs leading-5 text-[#606078]">{{ step.detail }}</p>
                   </div>
                 </div>
               </div>
+            }
+          </div>
 
-              @if (hasSkills) {
-                <div class="mt-5 flex flex-wrap gap-2">
-                  @for (skill of skills; track skill; let i = $index) {
-                    <span class="rounded-full border px-3 py-1.5 text-xs font-bold" [ngClass]="getSkillTone(i)">
-                      {{ skill }}
-                    </span>
-                  }
+          <div class="mt-6 rounded-2xl border border-dashed border-[#C7C5F8] bg-[#FBFAFF] p-4">
+            <label class="block text-sm font-extrabold text-[#0D0D14]" for="cv-file">Upload new CV</label>
+            <p class="mt-1 text-xs leading-5 text-[#606078]">PDF only for now. Each upload creates a new version and starts parsing.</p>
+            <input id="cv-file" type="file" accept=".pdf,application/pdf"
+              class="mt-3 block w-full text-xs text-[#606078] file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white"
+              (change)="onCvSelected($event)" />
+            @if (selectedCvFile()) {
+              <div class="mt-3 rounded-xl bg-white px-3 py-2 text-xs text-[#606078]">
+                Selected: <span class="font-semibold text-[#0D0D14]">{{ selectedCvFile()?.name }}</span>
+              </div>
+            }
+            <button type="button" (click)="uploadSelectedCv()"
+              class="mt-3 w-full rounded-full bg-[#0F172A] px-4 py-2.5 text-[13px] font-bold text-white transition hover:bg-[#18233C] disabled:cursor-not-allowed disabled:opacity-70"
+              [disabled]="isUploadingCv()">
+              {{ isUploadingCv() ? 'Uploading...' : 'Upload new version' }}
+            </button>
+          </div>
+
+          @if (cvError()) {
+            <div class="mt-4 rounded-2xl border border-[#F3D3D3] bg-[#FFF5F5] px-4 py-3 text-sm text-[#B42318]">{{ cvError() }}</div>
+          }
+        </section>
+      </aside>
+
+      <main class="space-y-6">
+        <section class="overflow-hidden rounded-[28px] border border-[#E2E7E3] bg-white shadow-[0_16px_44px_rgba(31,41,55,0.08)]">
+          <div class="border-b border-[#E8ECE8] bg-[#FBFDFB] p-6 sm:p-8">
+            <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+              <div class="flex items-center gap-5">
+                <div class="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-[#EEF2FF] font-display text-3xl font-extrabold text-accent">
+                  {{ getInitials() }}
                 </div>
+                <div class="min-w-0">
+                  <h2 class="font-display text-2xl font-extrabold text-[#0D0D14]">{{ fullName || 'Candidate' }}</h2>
+                  <p class="mt-1 text-sm font-semibold text-[#606078]">{{ profile()?.educationLevel || 'Candidate profile' }}</p>
+                  <div class="mt-3 flex flex-wrap items-center gap-2">
+                    <span class="rounded-full border px-3 py-1 text-xs font-bold" [ngClass]="extractionStateTone">{{ extractionStateLabel }}</span>
+                    @if (currentCv?.parsedAt) {
+                      <span class="text-xs text-[#606078]">Parsed {{ currentCv?.parsedAt | date:'medium' }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <div class="min-w-[190px] rounded-2xl border border-[#E8ECE8] bg-white p-4">
+                <div class="flex items-center justify-between text-xs font-bold text-[#748074]">
+                  <span>Extraction</span>
+                  <span>{{ extractionProgress }}%</span>
+                </div>
+                <div class="mt-3 h-2.5 overflow-hidden rounded-full bg-[#E5E8EA]">
+                  <div class="h-full rounded-full bg-[#4F46E5] transition-all" [style.width.%]="extractionProgress"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid gap-0 xl:grid-cols-[1fr_240px]">
+            <div class="p-6 sm:p-8">
+              <div class="rounded-[24px] border border-[#E3E7F8] bg-[#FCFCFF] p-5">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#4F46E5]">Extracted skills</div>
+                    <h3 class="font-display mt-2 text-lg font-extrabold text-[#0D0D14]">{{ hasSkills ? 'Skills found in your CV' : 'No skills extracted yet' }}</h3>
+                  </div>
+                  <button type="button" (click)="generateSkills()"
+                    class="rounded-full border border-[#C8C6FF] bg-white px-4 py-2 text-sm font-bold text-[#4F46E5] transition hover:bg-[#F5F4FF] disabled:cursor-not-allowed disabled:opacity-60"
+                    [disabled]="!currentCv || isExtractingSkills()">
+                    {{ isExtractingSkills() ? 'Generating...' : (hasSkills ? 'Regenerate skills' : 'Generate skills') }}
+                  </button>
+                </div>
+
+                @if (isLoadingProfile()) {
+                  <div class="mt-5 grid gap-2 sm:grid-cols-4">
+                    @for (item of [1,2,3,4,5,6,7,8]; track item) {
+                      <div class="h-10 animate-pulse rounded-xl bg-[#EBEBF0]"></div>
+                    }
+                  </div>
+                } @else if (hasSkills) {
+                  <div class="mt-5 flex flex-wrap gap-2.5">
+                    @for (skill of featuredSkills; track skill; let i = $index) {
+                      <span class="rounded-xl border px-4 py-2 text-sm font-extrabold" [ngClass]="getSkillTone(i)">{{ skill }}</span>
+                    }
+                    @if (hiddenSkillsCount > 0) {
+                      <span class="rounded-xl border border-[#E1E5EA] bg-white px-4 py-2 text-sm font-extrabold text-[#606078]">+{{ hiddenSkillsCount }} more</span>
+                    }
+                  </div>
+                } @else {
+                  <div class="mt-5 rounded-2xl border border-dashed border-[#C8D8CE] bg-white p-5">
+                    <p class="text-sm font-semibold text-[#0D0D14]">Upload a PDF CV or generate skills from your active CV.</p>
+                    <p class="mt-1 text-xs leading-5 text-[#606078]">Extracted skills will appear here as soon as parsing succeeds.</p>
+                  </div>
+                }
+              </div>
+
+              <div class="mt-6 grid gap-4 md:grid-cols-3">
+                <div class="rounded-[22px] border border-[#CDEFE2] bg-[#F8FFFB] p-5">
+                  <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#087443]">Experience</div>
+                  <div class="mt-2 font-display text-2xl font-extrabold text-[#0D0D14]">{{ profile()?.experienceYears ?? 0 }} years</div>
+                  <p class="mt-1 text-xs text-[#606078]">Professional experience</p>
+                </div>
+                <div class="rounded-[22px] border border-[#DDE7FF] bg-[#F8FAFF] p-5">
+                  <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#335CBE]">Education level</div>
+                  <div class="mt-2 truncate font-display text-2xl font-extrabold text-[#0D0D14]">{{ profile()?.educationLevel || 'Unknown' }}</div>
+                  <p class="mt-1 text-xs text-[#606078]">Parsed profile data</p>
+                </div>
+                <div class="rounded-[22px] border border-[#F7DFC2] bg-[#FFF9EF] p-5">
+                  <div class="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#A05A00]">Total skills</div>
+                  <div class="mt-2 font-display text-2xl font-extrabold text-[#0D0D14]">{{ totalSkillsLabel }}</div>
+                  <p class="mt-1 text-xs text-[#606078]">Technical signals</p>
+                </div>
+              </div>
+
+              <div class="mt-6 rounded-[22px] border border-[#DDE7FF] bg-[#F8FAFF] p-5">
+                <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#335CBE]">Professional summary</div>
+                <p class="mt-3 text-sm leading-7 text-[#303044]">{{ professionalSummary }}</p>
+              </div>
+            </div>
+
+            <aside class="border-t border-[#E8ECE8] bg-[#FBFDFB] p-6 xl:border-l xl:border-t-0">
+              <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-[#748074]">CV information</div>
+              @if (isLoadingCvs()) {
+                <div class="mt-4 h-40 animate-pulse rounded-2xl bg-[#EBEBF0]"></div>
+              } @else if (currentCv) {
+                <dl class="mt-4 space-y-4 text-sm">
+                  <div>
+                    <dt class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#9898A8]">File name</dt>
+                    <dd class="mt-1 break-words font-semibold text-[#0D0D14]">
+                      <a [href]="currentCv.fileUrl" target="_blank" rel="noreferrer" class="hover:text-accent">{{ currentCv.fileName }}</a>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#9898A8]">Uploaded on</dt>
+                    <dd class="mt-1 text-[#3C3C50]">{{ currentCv.uploadedAt | date:'medium' }}</dd>
+                  </div>
+                  <div>
+                    <dt class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#9898A8]">File size</dt>
+                    <dd class="mt-1 text-[#3C3C50]">{{ formatFileSize(currentCv.fileSize) }}</dd>
+                  </div>
+                  <div>
+                    <dt class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#9898A8]">File type</dt>
+                    <dd class="mt-1 text-[#3C3C50]">{{ currentCv.fileType || 'Document' }}</dd>
+                  </div>
+                </dl>
               } @else {
-                <div class="mt-5 rounded-2xl border border-dashed border-[#C8D8CE] bg-[#FBFDFB] p-5">
-                  <p class="text-sm font-semibold text-[#0D0D14]">No skills extracted yet.</p>
-                  <p class="mt-1 text-xs leading-5 text-[#606078]">Upload a PDF CV or generate skills from your active CV.</p>
+                <div class="mt-4 rounded-2xl border border-dashed border-[#BFCFC5] bg-white p-4 text-sm leading-6 text-[#606078]">
+                  No CV uploaded yet.
                 </div>
               }
-
-              <button type="button" (click)="generateSkills()"
-                class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#0F172A] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#18233C] disabled:cursor-not-allowed disabled:opacity-60"
-                [disabled]="!currentCv || isExtractingSkills()">
-                <span>{{ isExtractingSkills() ? 'Generating skills...' : (hasSkills ? 'Regenerate skills' : 'Generate skills') }}</span>
-              </button>
-            }
+            </aside>
           </div>
-        </div>
+        </section>
 
-      </div>
-
-      <!-- Right column: Recommended jobs -->
-      <div class="rounded-[24px] border border-[#EBEBF0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-        <div class="mb-4 flex items-center justify-between">
-          <h2 class="font-display text-base font-bold text-[#0D0D14]">Recommended Jobs</h2>
-        </div>
-
-        @if (isLoadingJobs()) {
-          <div class="space-y-3">
-            @for (i of [1,2,3]; track i) {
-              <div class="h-20 animate-pulse rounded-2xl bg-[#EBEBF0]"></div>
-            }
+        <section class="rounded-[24px] border border-[#EBEBF0] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+          <div class="mb-4 flex items-center justify-between">
+            <h2 class="font-display text-base font-bold text-[#0D0D14]">Recommended jobs</h2>
+            <span class="text-xs font-semibold text-[#9898A8]">Based on your profile</span>
           </div>
-        }
 
-        @if (jobsError()) {
-          <div class="rounded-2xl border border-[#F3D3D3] bg-[#FFF5F5] px-4 py-3 text-sm text-[#B42318]">{{ jobsError() }}</div>
-        }
-
-        @if (!isLoadingJobs() && jobs().length === 0) {
-          <div class="rounded-[20px] border border-[#EBEBF0] bg-white p-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-            <p class="text-sm text-[#9898A8]">No job recommendations yet.</p>
-          </div>
-        }
-
-        @if (!isLoadingJobs() && jobs().length > 0) {
-          <div class="space-y-3">
-            @for (job of jobs(); track job.id) {
-              <div class="rounded-2xl border border-[#EBEBF0] bg-white px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-                <div class="flex items-start justify-between gap-3">
-                  <div>
-                    <div class="font-display text-[14px] font-bold text-[#0D0D14]">{{ job.title }}</div>
-                    <div class="mt-1 text-[12px] text-[#9898A8]">{{ job.company }} · {{ job.location || 'No location' }} · {{ job.minimumExperienceYears }}y exp</div>
-                    <div class="mt-1 text-[11px] text-[#606078]">{{ job.employmentType || 'Full-time' }} · {{ job.workMode || 'Hybrid' }} · {{ job.salaryRange || 'Salary TBD' }}</div>
-                  </div>
-                  <div class="flex flex-wrap gap-1 justify-end">
+          @if (isLoadingJobs()) {
+            <div class="grid gap-3 md:grid-cols-3">
+              @for (i of [1,2,3]; track i) {
+                <div class="h-24 animate-pulse rounded-2xl bg-[#EBEBF0]"></div>
+              }
+            </div>
+          } @else if (jobsError()) {
+            <div class="rounded-2xl border border-[#F3D3D3] bg-[#FFF5F5] px-4 py-3 text-sm text-[#B42318]">{{ jobsError() }}</div>
+          } @else if (jobs().length === 0) {
+            <div class="rounded-[20px] border border-[#EBEBF0] bg-white p-8 text-center">
+              <p class="text-sm text-[#9898A8]">No job recommendations yet.</p>
+            </div>
+          } @else {
+            <div class="grid gap-3 md:grid-cols-3">
+              @for (job of jobs(); track job.id) {
+                <article class="rounded-2xl border border-[#EBEBF0] bg-white px-5 py-4 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+                  <div class="font-display text-[14px] font-bold text-[#0D0D14]">{{ job.title }}</div>
+                  <div class="mt-1 text-[12px] text-[#9898A8]">{{ job.company }} · {{ job.minimumExperienceYears }}y exp</div>
+                  <div class="mt-3 flex flex-wrap gap-1">
                     @for (skill of job.requiredSkills.slice(0, 2); track skill) {
                       <span class="rounded-full border border-[#E0DFFF] bg-[#F5F3FF] px-2 py-0.5 text-[10.5px] font-medium text-accent">{{ skill }}</span>
                     }
                   </div>
-                </div>
-              </div>
-            }
-          </div>
-        }
-      </div>
-
+                </article>
+              }
+            </div>
+          }
+        </section>
+      </main>
     </div>
   </div>
 </div>
