@@ -24,6 +24,12 @@ export class RecruiterJobDetailPageComponent implements OnInit {
   isLoadingTopCandidates = signal(false);
   topCandidatesError = signal('');
   skillsInput = '';
+  readonly matchingSteps = [
+    { title: 'Parse CVs', detail: 'Extract text, skills, education, and experience.' },
+    { title: 'Generate vectors', detail: 'Convert job and candidate profiles into embeddings.' },
+    { title: 'Compare similarity', detail: 'Use pgvector cosine distance to measure closeness.' },
+    { title: 'Rank matches', detail: 'Show candidates with the strongest semantic fit.' }
+  ];
 
   form: CreateJobPayload = this.emptyForm();
 
@@ -117,6 +123,34 @@ export class RecruiterJobDetailPageComponent implements OnInit {
     const job = this.job();
     if (!job) return;
     this.loadTopCandidates(job.id);
+  }
+
+  scoreWidth(candidate: TopCandidate): string {
+    return `${Math.max(4, Math.min(candidate.matchPercentage ?? 0, 100))}%`;
+  }
+
+  scoreLabel(candidate: TopCandidate): string {
+    const score = candidate.matchPercentage ?? 0;
+    if (score >= 85) return 'Excellent match';
+    if (score >= 70) return 'Strong match';
+    if (score >= 55) return 'Good match';
+    return 'Review fit';
+  }
+
+  scoreTone(candidate: TopCandidate): string {
+    const score = candidate.matchPercentage ?? 0;
+    if (score >= 85) return 'text-[#087443]';
+    if (score >= 70) return 'text-[#2563EB]';
+    if (score >= 55) return 'text-[#A15C07]';
+    return 'text-[#9F1239]';
+  }
+
+  visibleSkills(candidate: TopCandidate): string[] {
+    return (candidate.skills ?? []).slice(0, 4);
+  }
+
+  hiddenSkillsCount(candidate: TopCandidate): number {
+    return Math.max(0, (candidate.skills?.length ?? 0) - this.visibleSkills(candidate).length);
   }
 
   private loadTopCandidates(jobId: number): void {
