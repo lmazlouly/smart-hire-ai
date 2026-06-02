@@ -25,6 +25,7 @@ export class RecruiterDashboardPageComponent implements OnInit {
   saveSuccess = signal('');
   skillsInput = '';
   form: CreateJobPayload = this.emptyForm();
+  readonly statusOptions = ['Open', 'Review', 'Closed'];
 
   get fullName(): string {
     return this.authService.getFullName();
@@ -93,6 +94,14 @@ export class RecruiterDashboardPageComponent implements OnInit {
       .split(',')
       .map((skill) => skill.trim())
       .filter((skill) => skill.length > 0);
+  }
+
+  visibleSkills(job: Job): string[] {
+    return (job.requiredSkills ?? []).slice(0, 3);
+  }
+
+  hiddenSkillsCount(job: Job): number {
+    return Math.max(0, (job.requiredSkills?.length ?? 0) - this.visibleSkills(job).length);
   }
 
   selectJob(job: Job): void {

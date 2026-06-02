@@ -23,13 +23,22 @@ export class RecruiterJobDetailPageComponent implements OnInit {
   topCandidates = signal<TopCandidate[]>([]);
   isLoadingTopCandidates = signal(false);
   topCandidatesError = signal('');
+  isHelpOpen = signal(false);
+  visibleCandidateCount = signal(3);
+  candidateFilter = signal<'all' | 'strong' | 'skills' | 'review'>('all');
   skillsInput = '';
   readonly matchingSteps = [
-    { title: 'Parse CVs', detail: 'Extract text, skills, education, and experience.' },
-    { title: 'Generate vectors', detail: 'Convert job and candidate profiles into embeddings.' },
-    { title: 'Compare similarity', detail: 'Use pgvector cosine distance to measure closeness.' },
-    { title: 'Rank matches', detail: 'Show candidates with the strongest semantic fit.' }
+    { title: 'Read CVs', detail: 'The platform reviews uploaded CVs and profile details.' },
+    { title: 'Compare fit', detail: 'It compares skills, experience, education, and job requirements.' },
+    { title: 'Rank candidates', detail: 'The strongest matches appear first for faster review.' }
   ];
+  readonly candidateFilters = [
+    { value: 'all' as const, label: 'All' },
+    { value: 'strong' as const, label: 'Strong matches' },
+    { value: 'skills' as const, label: 'Has skill overlap' },
+    { value: 'review' as const, label: 'Needs review' }
+  ];
+  readonly displayLimitOptions = [3, 5, 10];
 
   form: CreateJobPayload = this.emptyForm();
 
@@ -125,6 +134,52 @@ export class RecruiterJobDetailPageComponent implements OnInit {
     this.loadTopCandidates(job.id);
   }
 
+  setCandidateFilter(filter: 'all' | 'strong' | 'skills' | 'review'): void {
+    this.candidateFilter.set(filter);
+    this.visibleCandidateCount.set(3);
+  }
+
+  setVisibleCandidateCount(count: number): void {
+    this.visibleCandidateCount.set(count);
+  }
+
+  showMoreCandidates(): void {
+    this.visibleCandidateCount.update((count) => Math.min(count + 3, this.filteredCandidates().length));
+  }
+
+  filteredCandidates(): TopCandidate[] {
+    const filter = this.candidateFilter();
+
+    if (filter === 'strong') {
+      return this.topCandidates().filter((candidate) => (candidate.matchPercentage ?? 0) >= 70);
+    }
+    if (filter === 'skills') {
+      return this.topCandidates().filter((candidate) => (candidate.sharedSkills?.length ?? 0) > 0);
+    }
+    if (filter === 'review') {
+      return this.topCandidates().filter((candidate) => (candidate.matchPercentage ?? 0) < 70);
+    }
+
+    return this.topCandidates();
+  }
+
+  visibleCandidates(): TopCandidate[] {
+    return this.filteredCandidates().slice(0, this.visibleCandidateCount());
+  }
+
+  get hasMoreCandidates(): boolean {
+    return this.visibleCandidates().length < this.filteredCandidates().length;
+  }
+
+  get rankedTotalLabel(): string {
+    const filtered = this.filteredCandidates().length;
+    const total = this.topCandidates().length;
+    if (filtered === total) {
+      return `${total} ranked total`;
+    }
+    return `${filtered} shown by filter · ${total} ranked total`;
+  }
+
   scoreWidth(candidate: TopCandidate): string {
     return `${Math.max(4, Math.min(candidate.matchPercentage ?? 0, 100))}%`;
   }
@@ -160,6 +215,7 @@ export class RecruiterJobDetailPageComponent implements OnInit {
     this.jobService.getTopCandidates(jobId).subscribe({
       next: (candidates) => {
         this.topCandidates.set(candidates);
+        this.visibleCandidateCount.set(3);
         this.isLoadingTopCandidates.set(false);
       },
       error: (err) => {
