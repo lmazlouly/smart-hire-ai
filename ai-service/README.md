@@ -68,6 +68,20 @@ The service runs on: `http://localhost:8000`
 
 Interactive API docs: `http://localhost:8000/docs`
 
+### OpenAI embeddings
+
+For production-quality ranking, set your OpenAI key before starting the service:
+
+```bash
+export OPENAI_API_KEY=your_key_here
+export OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+export OPENAI_EMBEDDING_DIMENSIONS=384
+```
+
+The `/embed` endpoint uses OpenAI when `OPENAI_API_KEY` is present. If the key
+or network is unavailable, it falls back to the local sentence-transformers model
+and then to a deterministic hashing fallback for local demos.
+
 ---
 
 ## Endpoints
@@ -76,7 +90,7 @@ Interactive API docs: `http://localhost:8000/docs`
 |--------|-----------------|---------------------------------------------|
 | GET    | /health         | Check if service is running                 |
 | POST   | /parse-cv       | Upload a PDF CV, get structured profile     |
-| POST   | /parse-cv-text  | Send plain text CV, get structured profile  |
+| POST   | /embed          | Turn candidate/job text into a vector       |
 | POST   | /match          | Send candidate + job data, get match score  |
 
 ---

@@ -1,5 +1,6 @@
 package com.smarthireai.controller;
 
+import com.smarthireai.dto.CandidateProfileResponse;
 import com.smarthireai.dto.CreateCandidateRequest;
 import com.smarthireai.entity.Candidate;
 import com.smarthireai.service.CandidateService;
@@ -25,6 +26,11 @@ public class CandidateController {
     @GetMapping
     public List<Candidate> getCandidates() {
         return candidateService.getAllCandidates();
+    }
+
+    @GetMapping("/me")
+    public CandidateProfileResponse getMyProfile() {
+        return candidateService.getMyProfile();
     }
 
     @PostMapping

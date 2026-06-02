@@ -22,10 +22,3 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
     except Exception as e:
         print(f"[cv_parser] Failed to extract text: {e}")
         return ""
-
-
-def extract_text_from_plain(text: str) -> str:
-    """
-    If the user submits plain text directly (not a PDF), just return it as-is.
-    """
-    return text.strip()

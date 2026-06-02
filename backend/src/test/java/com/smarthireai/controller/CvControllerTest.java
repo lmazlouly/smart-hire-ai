@@ -5,12 +5,19 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.smarthireai.dto.CvParseResult;
+import com.smarthireai.repository.CandidateRepository;
 import com.smarthireai.repository.CvVersionRepository;
 import com.smarthireai.repository.UserRepository;
+import com.smarthireai.service.CvFileDownloader;
+import com.smarthireai.service.CvParsingClient;
+import com.smarthireai.service.EmbeddingClient;
+import com.smarthireai.service.EmbeddingStore;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +40,9 @@ class CvControllerTest {
     private CvVersionRepository cvVersionRepository;
 
     @Autowired
+    private CandidateRepository candidateRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
     @LocalServerPort
@@ -40,6 +50,7 @@ class CvControllerTest {
 
     @AfterEach
     void tearDown() {
+        candidateRepository.deleteAll();
         cvVersionRepository.deleteAll();
         userRepository.deleteAll();
     }
@@ -69,6 +80,49 @@ class CvControllerTest {
         assertThat(history.body()).contains("\"fileName\":\"candidate-cv-v2.pdf\"");
         assertThat(history.body()).contains("\"fileName\":\"candidate-cv-v1.pdf\"");
         assertThat(history.body().indexOf("candidate-cv-v2.pdf")).isLessThan(history.body().indexOf("candidate-cv-v1.pdf"));
+    }
+
+    @Test
+    void uploadingCvExtractsSkillsIntoCandidateProfile() throws Exception {
+        String token = registerAndGetToken(
+                "Skill Candidate",
+                "skill-candidate@example.com",
+                "CANDIDATE"
+        );
+
+        HttpResponse<String> upload = uploadCv(token, "skill-candidate.pdf", "Java Spring Boot SQL");
+
+        assertThat(upload.statusCode()).isEqualTo(201);
+        assertThat(upload.body()).contains("\"parseStatus\":\"PARSED\"");
+
+        HttpResponse<String> profile = get("/api/candidates/me", token);
+
+        assertThat(profile.statusCode()).isEqualTo(200);
+        assertThat(profile.body()).contains("\"skills\":[\"Java\",\"Spring Boot\",\"PostgreSQL\"]");
+        assertThat(profile.body()).contains("\"experienceYears\":3");
+        assertThat(profile.body()).contains("\"educationLevel\":\"Bachelor\"");
+        assertThat(candidateRepository.findAll().getFirst().getEmbeddingText())
+                .contains("Java", "Spring Boot", "PostgreSQL", "Bachelor");
+        assertThat(candidateRepository.findAll().getFirst().getEmbeddingUpdatedAt()).isNotNull();
+    }
+
+    @Test
+    void candidateCanGenerateSkillsForUploadedCv() throws Exception {
+        String token = registerAndGetToken(
+                "Manual Parse Candidate",
+                "manual-parse-candidate@example.com",
+                "CANDIDATE"
+        );
+        HttpResponse<String> upload = uploadCv(token, "manual-parse.pdf", "Manual CV content");
+
+        Long cvId = extractLong(upload.body(), "\"id\":");
+        HttpResponse<String> response = postJson("/api/candidate/cvs/" + cvId + "/extract-skills", "{}", token);
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).contains("\"parseStatus\":\"PARSED\"");
+
+        HttpResponse<String> profile = get("/api/candidates/me", token);
+        assertThat(profile.body()).contains("\"skills\":[\"Java\",\"Spring Boot\",\"PostgreSQL\"]");
     }
 
     @Test
@@ -146,6 +200,15 @@ class CvControllerTest {
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
+    private Long extractLong(String body, String marker) {
+        int start = body.indexOf(marker) + marker.length();
+        int end = start;
+        while (end < body.length() && Character.isDigit(body.charAt(end))) {
+            end++;
+        }
+        return Long.parseLong(body.substring(start, end));
+    }
+
     @TestConfiguration
     static class S3TestConfiguration {
 
@@ -156,6 +219,42 @@ class CvControllerTest {
             when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
                     .thenReturn(PutObjectResponse.builder().build());
             return s3Client;
+        }
+
+        @Bean
+        @Primary
+        CvParsingClient mockCvParsingClient() {
+            return (fileName, content, contentType) -> new CvParseResult(
+                    List.of("Java", "Spring Boot", "PostgreSQL"),
+                    3,
+                    "Bachelor"
+            );
+        }
+
+        @Bean
+        @Primary
+        CvFileDownloader mockCvFileDownloader() {
+            return fileUrl -> "Downloaded PDF content".getBytes();
+        }
+
+        @Bean
+        @Primary
+        EmbeddingClient mockEmbeddingClient() {
+            return text -> List.of(0.1, 0.2, 0.3);
+        }
+
+        @Bean
+        @Primary
+        EmbeddingStore mockEmbeddingStore() {
+            return new EmbeddingStore() {
+                @Override
+                public void saveJobEmbedding(Long jobId, List<Double> embedding) {
+                }
+
+                @Override
+                public void saveCandidateEmbedding(Long candidateId, List<Double> embedding) {
+                }
+            };
         }
     }
 }
