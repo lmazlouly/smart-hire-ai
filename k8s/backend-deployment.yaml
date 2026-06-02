@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: backend
+
+  template:
+    metadata:
+      labels:
+        app: backend
+
+    spec:
+      containers:
+        - name: backend
+          image: dou223/backend:latest
+
+          ports:
+            - containerPort: 8080
+
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://db.prisma.io:5432/postgres?sslmode=require"
+
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "69c42e02d938c852509bd798edc0643aeaf192c3b190676ed5dfa4020d3657b7"
+
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "sk_m-eUZqzr2FL3Y7qjdFZ0I"
+
+            - name: SECURITY_JWT_SECRET
+              value: "Zjnbli59GyXDeEa7ap5jNa3cSp0EZWBdH1kuWiC2Sww="
+
+            - name: SECURITY_JWT_EXPIRATION_MS
+              value: "86400000"
+
+            - name: CLOUDFLARE_R2_ACCESS_KEY
+              value: "5ff7ca02d8c1ec0b048d82d3f760f6c1"
+
+            - name: CLOUDFLARE_R2_SECRET_KEY
+              value: "b81e2b37c424b038826c719d1f7b4dc323ff78028477607fd9e9058b5f8bff98"
+
+            - name: CLOUDFLARE_R2_BUCKET_NAME
+              value: "smarthireai"
+
+            - name: CLOUDFLARE_R2_ENDPOINT
+              value: "https://1e628ba0042c7e547daaee89ff2101b6.r2.cloudflarestorage.com"
+
+            - name: CLOUDFLARE_R2_PUBLIC_URL
+              value: "https://shaicdn.onixellc.com"

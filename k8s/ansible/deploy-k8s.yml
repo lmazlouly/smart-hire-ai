@@ -1,0 +1,20 @@
+---
+- name: Deploy Smart Hire AI on Kubernetes
+  hosts: local
+  tasks:
+    - name: Apply Kubernetes manifests
+      command: kubectl apply -f /home/halidou/Desktop/smart/smart-hire-ai/k8s/
+
+    - name: Restart frontend deployment
+      command: kubectl rollout restart deployment frontend
+
+    - name: Restart backend deployment
+      command: kubectl rollout restart deployment backend
+
+    - name: Show pods
+      command: kubectl get pods
+      register: pods_output
+
+    - name: Display pods
+      debug:
+        var: pods_output.stdout_lines
