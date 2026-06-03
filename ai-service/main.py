@@ -4,14 +4,15 @@
 # Available endpoints:
 #   GET  /health            → check the service is running
 #   POST /parse-cv          → upload a PDF, get back structured candidate data
-#   POST /parse-cv-text     → send plain text CV, get back structured candidate data
+#   POST /embed             → turn text into an embedding vector
 #   POST /match             → send candidate + job data, get back a compatibility score
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from cv_parser import extract_text_from_pdf, extract_text_from_plain
+from cv_parser import extract_text_from_pdf
+from embeddings import embed_text
 from extractor import extract_candidate_profile
 from matcher import compute_match_score
 
@@ -65,25 +66,23 @@ async def parse_cv(file: UploadFile = File(...)):
     return profile
 
 
-# --- CV Parsing (plain text) ---
+# --- Embeddings ---
 
-class PlainTextCV(BaseModel):
+class EmbedRequest(BaseModel):
     text: str
 
-@app.post("/parse-cv-text")
-def parse_cv_text(body: PlainTextCV):
-    """
-    Send raw CV text and receive a structured profile back.
-    Useful for testing without a PDF, or when the user types/pastes their CV.
-    """
-    if not body.text.strip():
-        raise HTTPException(status_code=400, detail="CV text cannot be empty.")
 
-    text = extract_text_from_plain(body.text)
-    profile = extract_candidate_profile(text)
-    profile["raw_text"] = text
+@app.post("/embed")
+def embed(body: EmbedRequest):
+    """
+    Turn a job or candidate profile text into a vector embedding.
 
-    return profile
+    The backend stores this vector in PostgreSQL using pgvector.
+    """
+    if not body.text or not body.text.strip():
+        raise HTTPException(status_code=400, detail="Text is required.")
+
+    return embed_text(body.text)
 
 
 # --- Candidate-Job Matching ---

@@ -1,6 +1,7 @@
 .DS_Store
 .idea/
 .vscode/
+__pycache__/
 .env
 .env.*
 
@@ -12,4 +13,5 @@ backend/.env
 backend/.env.*
 
 ai-service/.venv/
+ai-service/venv/
 ai-service/__pycache__/
