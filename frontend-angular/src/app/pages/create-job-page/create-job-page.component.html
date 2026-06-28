@@ -6,9 +6,9 @@
           <div>
             <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-accent">Create job</div>
             <h2 class="font-display mt-3 text-[1.6rem] font-extrabold text-[#0D0D14]">How do you want to start?</h2>
-            <p class="mt-2 text-sm leading-6 text-[#606078]">Use the classic form, or try the recruiter AI chatbot preview to shape the posting first.</p>
+            <p class="mt-2 text-sm leading-6 text-[#606078]">Use the classic form, or let the recruiter AI assistant shape the posting first.</p>
           </div>
-          <a routerLink="/recruiter" class="rounded-full border border-[#DDDDE8] px-3 py-1.5 text-[12px] font-semibold text-[#606078] hover:bg-[#F7F7FB]">Cancel</a>
+          <a routerLink="/recruiter/jobs" class="rounded-full border border-[#DDDDE8] px-3 py-1.5 text-[12px] font-semibold text-[#606078] hover:bg-[#F7F7FB]">Cancel</a>
         </div>
 
         <div class="mt-6 grid gap-3 sm:grid-cols-2">
@@ -25,7 +25,7 @@
               <svg width="19" height="19" viewBox="0 0 19 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A3.5 3.5 0 0 1 7.5 2h4A3.5 3.5 0 0 1 15 5.5v4A3.5 3.5 0 0 1 11.5 13H9l-4 3v-3.2A3.5 3.5 0 0 1 2 9.5v-4Z"/><path d="M7 7h5M7 10h3"/></svg>
             </div>
             <div class="mt-4 font-display text-[15px] font-bold text-[#0D0D14]">Try AI chatbot</div>
-            <div class="mt-1 text-[12px] leading-5 text-[#606078]">Preview a guided recruiter assistant before backend AI is connected.</div>
+            <div class="mt-1 text-[12px] leading-5 text-[#606078]">Describe the job and let AI fill the form as a draft.</div>
           </button>
         </div>
       </div>
@@ -34,9 +34,9 @@
 
   <div class="mx-auto max-w-[980px]">
     <div class="mb-8 flex items-center justify-between gap-4">
-      <a routerLink="/recruiter" class="inline-flex items-center gap-2 text-sm font-medium text-[#606078] hover:text-[#0D0D14]">
+      <a routerLink="/recruiter/jobs" class="inline-flex items-center gap-2 text-sm font-medium text-[#606078] hover:text-[#0D0D14]">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>
-        Back to dashboard
+        Back to jobs
       </a>
       <button type="button" (click)="reopenChoice()" class="rounded-full border border-[#DDDDE8] bg-white px-4 py-2 text-[12px] font-semibold text-[#3C3C50] transition hover:bg-[#F7F7FB]">
         Change start method
@@ -49,7 +49,7 @@
           <div class="lg:w-[320px]">
             <div class="text-[11px] font-bold uppercase tracking-[0.14em] text-accent">AI recruiter assistant</div>
             <h2 class="font-display mt-2 text-xl font-extrabold text-[#0D0D14]">Draft with chat</h2>
-            <p class="mt-2 text-sm leading-6 text-[#606078]">This is a front-end preview. The assistant interaction is local UI only until the AI backend is added.</p>
+            <p class="mt-2 text-sm leading-6 text-[#606078]">Describe the role in plain language. The assistant will fill the form for review before posting.</p>
           </div>
 
           <div class="flex min-h-[260px] flex-1 flex-col rounded-[18px] border border-[#EBEBF0] bg-white">
@@ -70,7 +70,11 @@
               <input type="text" name="chatInput" [(ngModel)]="chatInput"
                 class="min-w-0 flex-1 rounded-full border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-[#0D0D14] outline-none transition focus:border-accent"
                 placeholder="e.g. Senior Angular role, remote, 5 years, TypeScript..." />
-              <button type="submit" class="rounded-full bg-accent px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-accent-strong">Send</button>
+              <button type="submit"
+                class="rounded-full bg-accent px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-60"
+                [disabled]="isGeneratingDraft()">
+                {{ isGeneratingDraft() ? 'Generating...' : 'Send' }}
+              </button>
             </form>
           </div>
         </div>

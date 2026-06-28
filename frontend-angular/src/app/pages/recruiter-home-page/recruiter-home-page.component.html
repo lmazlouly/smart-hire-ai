@@ -1,0 +1,113 @@
+<div class="flex min-h-screen bg-[#F8F9FB] text-[#0D0D14]">
+  <aside class="hidden w-64 shrink-0 flex-col border-r border-[#E6E9EF] bg-white px-4 py-6 lg:flex">
+    <div class="mb-8 px-2">
+      <div class="font-display text-xl font-extrabold tracking-tight text-accent">Smart Hire AI</div>
+      <div class="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-[#8B90A0]">Recruiter workspace</div>
+    </div>
+
+    <nav class="flex flex-col gap-1.5">
+      <a routerLink="/recruiter" class="flex items-center gap-3 rounded-2xl bg-[#F0EEFF] px-3 py-2.5 text-sm font-extrabold text-accent shadow-sm">
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-white text-base shadow-sm">▦</span>
+        Dashboard
+      </a>
+
+      <a routerLink="/recruiter/jobs" class="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold text-[#606078] transition hover:bg-[#F7F7FB] hover:text-[#0D0D14]">
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F7F7FB] text-base">▣</span>
+        Jobs
+      </a>
+
+      <a routerLink="/recruiter/jobs/new" class="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold text-[#606078] transition hover:bg-[#F7F7FB] hover:text-[#0D0D14]">
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F7F7FB] text-base">＋</span>
+        Post a Job
+      </a>
+
+      <a routerLink="/settings" class="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold text-[#606078] transition hover:bg-[#F7F7FB] hover:text-[#0D0D14]">
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F7F7FB] text-base">⚙</span>
+        Settings
+      </a>
+    </nav>
+
+    <div class="mt-auto">
+      <button type="button" (click)="logout()" class="w-full rounded-2xl border border-[#DDDDE8] bg-white px-4 py-2.5 text-[13px] font-extrabold text-[#3C3C50] transition hover:bg-[#F7F7FB]">
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <main class="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+    <section class="rounded-[28px] border border-[#E2E7EF] bg-white p-6 shadow-[0_12px_34px_rgba(31,41,55,0.06)]">
+      <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+        <div>
+          <div class="text-xs font-extrabold uppercase tracking-[0.14em] text-accent">Recruiter dashboard</div>
+          <h1 class="font-display mt-2 text-3xl font-extrabold tracking-tight text-[#0D0D14] sm:text-4xl">
+            Welcome back, {{ fullName || 'Recruiter' }}
+          </h1>
+          <p class="mt-2 max-w-2xl text-sm leading-6 text-[#606078]">
+            Monitor your hiring workspace, review active jobs, and jump into candidate matching.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-3">
+          <a routerLink="/recruiter/jobs" class="inline-flex h-11 items-center justify-center rounded-xl border border-[#DADFE8] bg-white px-5 text-sm font-extrabold text-[#3C3C50] transition hover:bg-[#F7F7FB]">
+            View jobs
+          </a>
+          <a routerLink="/recruiter/jobs/new" class="inline-flex h-11 items-center justify-center rounded-xl bg-accent px-5 text-sm font-extrabold text-white shadow-[0_10px_22px_rgba(99,102,241,0.22)] transition hover:bg-accent-strong">
+            + Post a job
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-6 grid gap-4 md:grid-cols-3">
+      <div class="rounded-[24px] border border-[#E2E7EF] bg-white p-5 shadow-[0_10px_28px_rgba(31,41,55,0.05)]">
+        <div class="text-xs font-bold uppercase tracking-[0.12em] text-[#8B90A0]">Total jobs</div>
+        <div class="font-display mt-3 text-4xl font-extrabold text-[#0D0D14]">{{ jobs().length }}</div>
+      </div>
+      <div class="rounded-[24px] border border-[#E2E7EF] bg-white p-5 shadow-[0_10px_28px_rgba(31,41,55,0.05)]">
+        <div class="text-xs font-bold uppercase tracking-[0.12em] text-[#8B90A0]">Active jobs</div>
+        <div class="font-display mt-3 text-4xl font-extrabold text-[#087443]">{{ activeJobsCount }}</div>
+      </div>
+      <div class="rounded-[24px] border border-[#E2E7EF] bg-white p-5 shadow-[0_10px_28px_rgba(31,41,55,0.05)]">
+        <div class="text-xs font-bold uppercase tracking-[0.12em] text-[#8B90A0]">Needs review</div>
+        <div class="font-display mt-3 text-4xl font-extrabold text-[#A15C07]">{{ reviewJobsCount }}</div>
+      </div>
+    </section>
+
+    <section class="mt-6 rounded-[28px] border border-[#E2E7EF] bg-white p-6 shadow-[0_12px_34px_rgba(31,41,55,0.06)]">
+      <div class="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <h2 class="font-display text-xl font-extrabold text-[#0D0D14]">Recent jobs</h2>
+          <p class="mt-1 text-sm text-[#606078]">Open a job to review details and ranked candidates.</p>
+        </div>
+        <a routerLink="/recruiter/jobs" class="text-sm font-extrabold text-accent hover:underline">Manage all</a>
+      </div>
+
+      @if (isLoadingJobs()) {
+        <div class="grid gap-3">
+          @for (item of [1, 2, 3]; track item) {
+            <div class="h-20 animate-pulse rounded-2xl bg-[#EBEBF0]"></div>
+          }
+        </div>
+      } @else if (jobsError()) {
+        <div class="rounded-2xl border border-[#F3D3D3] bg-[#FFF5F5] px-4 py-3 text-sm text-[#B42318]">{{ jobsError() }}</div>
+      } @else if (recentJobs.length === 0) {
+        <div class="rounded-2xl border border-dashed border-[#DADFE8] bg-[#FBFCFE] p-8 text-center">
+          <div class="font-display text-lg font-extrabold text-[#0D0D14]">No jobs yet</div>
+          <p class="mt-2 text-sm text-[#606078]">Create your first job to start matching candidates.</p>
+        </div>
+      } @else {
+        <div class="grid gap-3">
+          @for (job of recentJobs; track job.id) {
+            <a [routerLink]="['/recruiter/jobs', job.id]" class="flex flex-col gap-3 rounded-2xl border border-[#E6E9EF] bg-[#FBFCFE] px-4 py-4 transition hover:border-[#C8C6FF] hover:bg-white sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div class="font-display text-base font-extrabold text-[#0D0D14]">{{ job.title }}</div>
+                <div class="mt-1 text-sm text-[#606078]">{{ job.company }} · {{ job.location || 'No location' }}</div>
+              </div>
+              <span class="shrink-0 rounded-full border border-[#BBF7D0] bg-[#F0FDF4] px-3 py-1 text-xs font-bold text-[#15803D]">{{ job.status || 'Open' }}</span>
+            </a>
+          }
+        </div>
+      }
+    </section>
+  </main>
+</div>

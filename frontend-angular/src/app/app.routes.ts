@@ -2,6 +2,7 @@ import { Routes, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
 import { HomePageComponent } from './pages/home-page/home-page.component';
+import { RecruiterHomePageComponent } from './pages/recruiter-home-page/recruiter-home-page.component';
 import { RecruiterDashboardPageComponent } from './pages/recruiter-dashboard-page/recruiter-dashboard-page.component';
 import { RecruiterJobDetailPageComponent } from './pages/recruiter-job-detail-page/recruiter-job-detail-page.component';
 import { CandidateDashboardPageComponent } from './pages/candidate-dashboard-page/candidate-dashboard-page.component';
@@ -56,6 +57,12 @@ export const routes: Routes = [
     data: { roles: ['CANDIDATE'] }
   },
   {
+    path: 'recruiter/jobs',
+    component: RecruiterDashboardPageComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['RECRUITER'] }
+  },
+  {
     path: 'recruiter/jobs/new',
     component: CreateJobPageComponent,
     canActivate: [roleGuard],
@@ -69,7 +76,7 @@ export const routes: Routes = [
   },
   {
     path: 'recruiter',
-    component: RecruiterDashboardPageComponent,
+    component: RecruiterHomePageComponent,
     canActivate: [roleGuard],
     data: { roles: ['RECRUITER'] }
   },
