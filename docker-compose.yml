@@ -41,9 +41,9 @@ services:
       ai-service:
         condition: service_started
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-smart_hire_ai}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-smart_hire_ai}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-smart_hire_ai_password}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://db:5432/${POSTGRES_DB:-smart_hire_ai}}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-${POSTGRES_USER:-smart_hire_ai}}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-${POSTGRES_PASSWORD:-smart_hire_ai_password}}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
       SECURITY_JWT_SECRET: ${SECURITY_JWT_SECRET:-change-me-to-a-long-random-secret}
       SECURITY_JWT_EXPIRATION_MS: ${SECURITY_JWT_EXPIRATION_MS:-86400000}
