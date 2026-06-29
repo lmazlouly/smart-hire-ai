@@ -19,6 +19,7 @@ export class RecruiterDashboardPageComponent implements OnInit {
   isLoadingJobs = signal(true);
   jobsError = signal('');
   selectedJob = signal<Job | null>(null);
+  expandedJobIds = signal<Set<number>>(new Set());
   searchTerm = signal('');
   isSaving = signal(false);
   saveError = signal('');
@@ -102,6 +103,22 @@ export class RecruiterDashboardPageComponent implements OnInit {
 
   hiddenSkillsCount(job: Job): number {
     return Math.max(0, (job.requiredSkills?.length ?? 0) - this.visibleSkills(job).length);
+  }
+
+  isExpanded(job: Job): boolean {
+    return this.expandedJobIds().has(job.id);
+  }
+
+  toggleMoreInfo(job: Job): void {
+    this.expandedJobIds.update((expandedJobIds) => {
+      const next = new Set(expandedJobIds);
+      if (next.has(job.id)) {
+        next.delete(job.id);
+      } else {
+        next.add(job.id);
+      }
+      return next;
+    });
   }
 
   selectJob(job: Job): void {

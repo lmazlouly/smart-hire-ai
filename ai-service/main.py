@@ -11,9 +11,14 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from env_loader import load_local_env
+
+load_local_env()
+
 from cv_parser import extract_text_from_pdf
 from embeddings import embed_text
 from extractor import extract_candidate_profile
+from job_draft import generate_job_draft
 from matcher import compute_match_score
 
 app = FastAPI(
@@ -115,3 +120,28 @@ def match(body: MatchRequest):
     """
     result = compute_match_score(body.candidate, body.job)
     return result
+
+
+# --- AI Job Drafts ---
+
+class JobDraftRequest(BaseModel):
+    prompt: str
+
+
+@app.post("/generate-job-draft")
+def generate_job_draft_endpoint(body: JobDraftRequest):
+    """
+    Turn a recruiter's natural-language message into a structured job draft.
+
+    The Angular form still controls final posting: this endpoint only fills a draft
+    that the recruiter can review before saving.
+    """
+    if not body.prompt or not body.prompt.strip():
+        raise HTTPException(status_code=400, detail="Prompt is required.")
+
+    try:
+        return generate_job_draft(body.prompt.strip())
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="Could not generate a job draft.") from exc

@@ -1,17 +1,19 @@
-FROM node:20 AS build
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+RUN corepack enable && corepack prepare pnpm@10.11.0 --activate
 
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 COPY . .
 
-RUN npm run build -- --configuration production
+RUN pnpm build --configuration production
 
 FROM nginx:alpine
 
 COPY --from=build /app/dist/frontend-angular/browser /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
