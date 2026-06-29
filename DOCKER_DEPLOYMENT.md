@@ -46,7 +46,23 @@ docker compose logs -f ai-service
 docker compose logs -f db
 ```
 
-## 4. Stop
+## 4. Automatic deploy from GitHub
+
+The workflow `.github/workflows/deploy-vps.yml` deploys automatically when `main`
+is updated. It connects to the VPS, pulls `origin/main`, rebuilds the Docker
+stack, restarts the containers, and prunes unused Docker images.
+
+Required GitHub Actions secrets:
+
+- `VPS_HOST`
+- `VPS_USER`
+- `VPS_PASSWORD`
+
+The VPS must already contain `/opt/smart-hire-ai/.env` with the real production
+values because secrets such as database, R2, and OpenAI keys are not committed to
+Git.
+
+## 5. Stop
 
 ```bash
 docker compose down
